@@ -1,4 +1,3 @@
-
 CC:=gcc
 FLAGS:=-Wall -Wextra -Wpedantic -std=c11
 
@@ -8,8 +7,14 @@ ABS_BUILD_PATH:=$(CUR_DIR)/build
 LIB_NAME:=chutil
 LIB_FILE:=build/lib$(LIB_NAME).a
 
+# Dependencies found in clib (my local store of C dependencies)
+DEPS:=unity
+DEPS_PATHS:=$(addprefix /Users/chathamabate/clib/,$(DEPS))
+DEPS_FLAGS:=$(foreach dp,$(DEPS_PATHS),-L$(dp)) $(foreach dep,$(DEPS),-l$(dep))
+
 REL_INC_PATHS:=include
-ABS_INC_PATHS:=$(addprefix $(CUR_DIR)/,$(REL_INC_PATHS))
+DEPS_INC_PATHS:=$(addsuffix /include,$(DEPS_PATHS))
+ABS_INC_PATHS:=$(DEPS_INC_PATHS) $(addprefix $(CUR_DIR)/,$(REL_INC_PATHS))
 
 INC_FLAGS:=$(addprefix -I,$(ABS_INC_PATHS))
 
@@ -20,7 +25,7 @@ SRCS:=dummy.c debug.c
 OBJS:=$(patsubst %.c,%.o,$(SRCS))
 FULL_OBJS:=$(addprefix build/,$(OBJS))
 
-TEST_SRCS:=main.c dummy.c
+TEST_SRCS:=main.c
 TEST_HEADER:=$(wildcard test/*.h)
 TEST_OBJS:=$(patsubst %.c,%.o,$(TEST_SRCS))
 FULL_TEST_OBJS:=$(addprefix build/test/,$(TEST_OBJS))
@@ -45,7 +50,7 @@ build/test/%.o: test/%.c $(HEADERS) $(TEST_HEADERS) | build/test
 	$(CC) -c $(FLAGS) $(INC_FLAGS) $< -o $@
 
 build/test/test: $(FULL_TEST_OBJS) $(LIB_FILE)
-	$(CC) $^ -L$(ABS_BUILD_PATH) -lchutil -o $@
+	$(CC) $^ $(DEPS_FLAGS) -L$(ABS_BUILD_PATH) -lchutil -o $@
 
 clangd:
 	echo "CompileFlags:" > .clangd

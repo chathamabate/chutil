@@ -1,3 +1,4 @@
 CompileFlags:
   Add:
+    - -I/Users/chathamabate/clib/unity/include
     - -I/Users/chathamabate/Desktop/Git-Workspaces/chutil/include
