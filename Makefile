@@ -20,12 +20,13 @@ INC_FLAGS:=$(addprefix -I,$(ABS_INC_PATHS))
 
 HEADERS:=$(wildcard include/chutil/*.h)
 
-SRCS:=dummy.c debug.c
+SRCS:=debug.c list.c
 
 OBJS:=$(patsubst %.c,%.o,$(SRCS))
 FULL_OBJS:=$(addprefix build/,$(OBJS))
 
-TEST_SRCS:=main.c
+TEST_SRCS:=main.c list.c
+
 TEST_HEADER:=$(wildcard test/*.h)
 TEST_OBJS:=$(patsubst %.c,%.o,$(TEST_SRCS))
 FULL_TEST_OBJS:=$(addprefix build/test/,$(TEST_OBJS))

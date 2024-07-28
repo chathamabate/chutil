@@ -1,21 +1,23 @@
 #include <stdio.h>
 
 #include "unity/unity_internals.h"
-#include <unity/unity.h>
+#include "unity/unity.h"
+
+#include "chutil/debug.h"
+
+#include "./list.h"
 
 void setUp(void) {
-
+    reset_malloc_count();
 }
+
 void tearDown(void) {
-
+    TEST_ASSERT_EQUAL_UINT(0, get_malloc_count());
 }
 
-void test_Func(void) {
-    TEST_ASSERT_EQUAL_INT32(5, 5);
-}
 
 int main(void) {
     UNITY_BEGIN();
-    RUN_TEST(test_Func);
+    array_list_tests();
     return UNITY_END();
 }

@@ -1,0 +1,6 @@
+.clangd
+build
+*.swp
+*.log
+*.a
+*.o
