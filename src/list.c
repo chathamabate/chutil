@@ -9,6 +9,7 @@ static const list_impl_t ARRAY_LIST_IMPL_VAL = {
     .len = (list_len_ft)al_len,
     .cell_size = (list_cell_size_ft)al_cell_size,
     .get_mut = (list_get_mut_ft)al_get_mut,
+    .get = (list_get_ft)al_get,
     .get_copy = (list_get_copy_ft)al_get_copy,
     .set = (list_set_ft)al_set,
     .push = (list_push_ft)al_push,
@@ -23,6 +24,7 @@ static const list_impl_t LINKED_LIST_IMPL_VAL = {
     .len = (list_len_ft)ll_len,
     .cell_size = (list_cell_size_ft)ll_cell_size,
     .get_mut = (list_get_mut_ft)ll_get_mut,
+    .get = (list_get_ft)ll_get,
     .get_copy = (list_get_copy_ft)ll_get_copy,
     .set = (list_set_ft)ll_set,
     .push = (list_push_ft)ll_push,
@@ -185,18 +187,25 @@ void ll_pop(linked_list_t *ll, void *dest) {
         return;
     }
 
+    linked_list_node_hdr_t *last = ll->last;
+
+    // Last cannot be NULL here.
     if (dest) {
-        // Last cannot be NULL here.
-        void *cell = llnh_get_cell(ll->last);
+        void *cell = llnh_get_cell(last);
         memcpy(dest, cell, ll->cell_size);
     }
 
-    ll->last = ll->last->prev;
+    ll->last = last->prev;
     if (ll->last) {
         ll->last->next = NULL;
+    } else {
+        // Empty list case.
+        ll->first = NULL;
     }
 
     ll->len--;
+
+    safe_free(last);
 }
 
 void ll_poll(linked_list_t *ll, void *dest) {
@@ -204,17 +213,23 @@ void ll_poll(linked_list_t *ll, void *dest) {
         return;
     }
 
+    linked_list_node_hdr_t *first = ll->first;
+
     if (dest) {
-        void *cell = llnh_get_cell(ll->first);
+        void *cell = llnh_get_cell(first);
         memcpy(dest, cell, ll->cell_size);
     }
 
-    ll->first = ll->first->next;
+    ll->first = first->next;
     if (ll->first) {
         ll->first->prev = NULL;
+    } else {
+        ll->last = NULL;
     }
 
     ll->len--;
+
+    safe_free(first);
 }
 
 

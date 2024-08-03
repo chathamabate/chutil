@@ -2,97 +2,175 @@
 #include "chutil/list.h"
 #include "unity/unity_internals.h"
 #include "unity/unity.h"
+#include <stdbool.h>
 
-void al_test_simple(void) {
-    uint32_t a, b;
-
-    array_list_t *al = new_array_list(sizeof(uint32_t));
-
-    TEST_ASSERT_EQUAL_size_t(0, al_len(al));
-
-    a = 4;
-    al_push(al, &a);
-    TEST_ASSERT_EQUAL_size_t(1, al_len(al));
-    TEST_ASSERT_GREATER_THAN_size_t(0, al_cap(al));
-    
-    al_get_copy(al, 0, &b);
-    TEST_ASSERT_EQUAL_UINT32(a, b);
-
-    al_pop(al, &b);
-    TEST_ASSERT_EQUAL_UINT32(a, b);
-    TEST_ASSERT_EQUAL_size_t(0, al_len(al));
-
-    delete_array_list(al);
+static void l_cell_size_test(const list_impl_t *impl) {
+    list_t *l = new_list(impl, sizeof(uint32_t));
+    TEST_ASSERT_EQUAL(sizeof(uint32_t), l_cell_size(l));
+    delete_list(l);
 }
 
-typedef struct {
-    uint32_t x;
-    uint32_t y;
-    uint32_t z;
-} al_coord_t;
+static void l_push_test(const list_impl_t *impl) {
+    list_t *l = new_list(impl, sizeof(uint32_t));
 
-void al_test_big(void) {
-    array_list_t *al = new_array_list(sizeof(al_coord_t));
+    TEST_ASSERT_EQUAL_size_t(0, l_len(l));
+
+    uint32_t num = 5;
+    l_push(l, &num);
+    TEST_ASSERT_EQUAL(1, l_len(l));
+
+    for (size_t i = 0; i < 5; i++) {
+        l_push(l, &num);
+    }
+    TEST_ASSERT_EQUAL(6, l_len(l));
+
+    delete_list(l);
+}
+
+static void l_set_get_test(const list_impl_t *impl) {
+    list_t *l = new_list(impl, sizeof(uint64_t));
+
+    uint64_t in, out;
+    const uint64_t *out_ptr;
+    uint64_t *mut_out_ptr;
+
+    in = 16;
+    l_push(l, &in);
+
+    out_ptr = (const uint64_t *)l_get(l, 0);
+    TEST_ASSERT_EQUAL_UINT64(in, *out_ptr);
+
+    l_push(l, &in);
+    l_push(l, &in);
+
+    in = 14;
+    l_set(l, 1, &in);
+    l_get_copy(l, 1, &out);
+    TEST_ASSERT_EQUAL_UINT64(in, out);
+
+    l_push(l, &in);
+    mut_out_ptr = l_get_mut(l, 3);
+    in = 25;
+    *mut_out_ptr = in;
+    l_get_copy(l, 3, &out);
+
+    TEST_ASSERT_EQUAL_UINT64(25, out);
+
+    delete_list(l);
+}
+
+typedef struct _coord_t {
+    uint32_t x, y, z; 
+} coord_t;
+
+static inline bool c_eq(const coord_t *c1, const coord_t *c2) {
+    return c1->x == c2->x && c1->y == c2->y && c1->z == c2->z;
+}
+
+static void l_pop_test(const list_impl_t *impl) {
+    list_t *l = new_list(impl, sizeof(coord_t));
+
+    coord_t in;
+    for (size_t i = 0; i < 10; i++) {
+        in.x = i; in.y = 2*i; in.z = 3*i;
+        l_push(l, &in);
+    }
+
+    coord_t out;
+    for (size_t i = 0; i < 10; i++) {
+        size_t j = 9 - i;
+        l_pop(l, &out);
+
+        in.x = j; in.y = 2*j; in.z = 3*j;
+        TEST_ASSERT_TRUE(c_eq(&in, &out));
+    }
+
+    delete_list(l);
+}
+
+static void l_poll_test(const list_impl_t *impl) {
+    list_t *l = new_list(impl, sizeof(coord_t));
+
+    coord_t in;
+    for (size_t i = 0; i < 10; i++) {
+        in.x = i; in.y = 2*i; in.z = 3*i;
+        l_push(l, &in);
+    }
+
+    coord_t out;
+    for (size_t i = 0; i < 10; i++) {
+        l_poll(l, &out);
+
+        in.x = i; in.y = 2*i; in.z = 3*i;
+        TEST_ASSERT_TRUE(c_eq(&in, &out));
+    }
     
-    TEST_ASSERT_EQUAL_size_t(sizeof(al_coord_t), al_cell_size(al));  
+    delete_list(l);
+}
 
-    const size_t LEN = 17;
-    for (size_t i = 0; i < LEN; i++) {
-        al_coord_t c = {
-            .x = i,
-            .y = i * 2,
-            .z = i * 3,
-        };
+static void l_poll_pop_test(const list_impl_t *impl) {
+    list_t *l = new_list(impl, sizeof(uint32_t)); 
+
+    uint32_t in, out;
+    
+    // Push on 0->99
+    for (size_t i = 0; i < 100; i++) {
+        in = i;
+        l_push(l, &in);
+    }
+
+    // Poll out 0->49
+    for (size_t i = 0; i < 50; i++) {
+        l_poll(l, &out);
+        TEST_ASSERT_EQUAL_UINT32(i, out);
+    }
+
+    // Push on 100->149
+    for (size_t i = 100; i < 150; i++) {
+        in = i;
+        l_push(l, &in);
+    }
+
+    // Pop out 149->100
+    for (size_t i = 149; i >= 100; i--) {
+        l_pop(l, &out);
+        TEST_ASSERT_EQUAL_UINT32(i, out);
+    }
+
+    // Should have 50->99 left on list.
+    for (size_t i = 0; i < 25; i++) {
+        size_t s = 50 + i;
+        l_poll(l, &out); 
+        TEST_ASSERT_EQUAL_UINT32(s, out);
         
-        al_push(al, &c);
+        size_t e = 99 - i;
+        l_pop(l, &out);
+        TEST_ASSERT_EQUAL(e, out);
     }
 
-    TEST_ASSERT_EQUAL_size_t(LEN, al_len(al));
-    TEST_ASSERT_GREATER_THAN_size_t(LEN-1, al_cap(al));
+    TEST_ASSERT_EQUAL_size_t(0, l_len(l));
 
-    const al_coord_t NULL_COORD = {
-        .x = 0, .y = 0, .z = 0
-    };
-
-    for (size_t i = 0; i < LEN; i++) {
-        const al_coord_t *c_ptr = al_get(al, i);
-        TEST_ASSERT_EQUAL_UINT32(i, c_ptr->x);
-        TEST_ASSERT_EQUAL_UINT32(i*2, c_ptr->y);
-        TEST_ASSERT_EQUAL_UINT32(i*3, c_ptr->z);
-
-        if (i % 2 == 0) {
-            al_set(al, i, &NULL_COORD);
-        }
-    }
-
-    const size_t POP_AMT = 5;
-    for (size_t i = LEN - 1; i >= LEN - POP_AMT; i--) {
-        al_coord_t c;
-        al_pop(al, &c);
-
-        if (i % 2 == 0) {
-            TEST_ASSERT_EQUAL_UINT32(0, c.x);
-            TEST_ASSERT_EQUAL_UINT32(0, c.y);
-            TEST_ASSERT_EQUAL_UINT32(0, c.z);
-        } else {
-            TEST_ASSERT_EQUAL_UINT32(i, c.x);
-            TEST_ASSERT_EQUAL_UINT32(i*2, c.y);
-            TEST_ASSERT_EQUAL_UINT32(i*3, c.z);
-        }
-    }
-
-    TEST_ASSERT_EQUAL_size_t(LEN - POP_AMT, al_len(al));
-
-    for (size_t i = 0; i < POP_AMT; i++) {
-        al_push(al, &NULL_COORD);
-    }
-
-    TEST_ASSERT_EQUAL_size_t(LEN, al_len(al));
-
-    delete_array_list(al);
+    delete_list(l);
 }
 
-void array_list_tests(void) {
-    RUN_TEST(al_test_simple);
-    RUN_TEST(al_test_big);
+static void l_test(const list_impl_t *impl) {
+    l_cell_size_test(impl);
+    l_push_test(impl);
+    l_set_get_test(impl);
+    l_pop_test(impl);
+    l_poll_test(impl);
+    l_poll_pop_test(impl);
+}
+
+static void array_list_tests(void) {
+    l_test(ARRAY_LIST_IMPL); 
+}
+
+static void linked_list_tests(void) {
+    l_test(LINKED_LIST_IMPL);
+}
+
+void list_tests(void) {
+    RUN_TEST(array_list_tests);
+    RUN_TEST(linked_list_tests);
 }

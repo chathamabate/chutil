@@ -56,7 +56,7 @@ static inline void *l_get_mut(list_t *l, size_t i) {
     return l->impl->get_mut(l->list, i);
 }
 
-static inline const void *l_get_(list_t *l, size_t i) {
+static inline const void *l_get(list_t *l, size_t i) {
     return l->impl->get(l->list, i);
 }
 

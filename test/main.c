@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "chutil/list.h"
 #include "unity/unity_internals.h"
 #include "unity/unity.h"
 
@@ -18,6 +19,6 @@ void tearDown(void) {
 
 int main(void) {
     UNITY_BEGIN();
-    array_list_tests();
+    list_tests();
     return UNITY_END();
 }
