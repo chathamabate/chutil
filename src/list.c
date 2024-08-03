@@ -2,6 +2,51 @@
 #include "chutil/debug.h"
 #include <string.h>
 
+// Concrete function usages:
+static const list_impl_t ARRAY_LIST_IMPL_VAL = {
+    .constructor = (list_constructor_ft)new_array_list,
+    .destructor = (list_destructor_ft)delete_array_list,
+    .len = (list_len_ft)al_len,
+    .cell_size = (list_cell_size_ft)al_cell_size,
+    .get_mut = (list_get_mut_ft)al_get_mut,
+    .get_copy = (list_get_copy_ft)al_get_copy,
+    .set = (list_set_ft)al_set,
+    .push = (list_push_ft)al_push,
+    .pop = (list_pop_ft)al_pop,
+    .poll = (list_poll_ft)al_poll,
+};
+const list_impl_t *ARRAY_LIST_IMPL = &ARRAY_LIST_IMPL_VAL;
+
+static const list_impl_t LINKED_LIST_IMPL_VAL = {
+    .constructor = (list_constructor_ft)new_linked_list,
+    .destructor = (list_destructor_ft)delete_linked_list,
+    .len = (list_len_ft)ll_len,
+    .cell_size = (list_cell_size_ft)ll_cell_size,
+    .get_mut = (list_get_mut_ft)ll_get_mut,
+    .get_copy = (list_get_copy_ft)ll_get_copy,
+    .set = (list_set_ft)ll_set,
+    .push = (list_push_ft)ll_push,
+    .pop = (list_pop_ft)ll_pop,
+    .poll = (list_poll_ft)ll_poll,
+};
+const list_impl_t *LINKED_LIST_IMPL = &LINKED_LIST_IMPL_VAL;
+
+list_t *new_list(const list_impl_t *impl, size_t cs) {
+    void *list = impl->constructor(cs); 
+    list_t *l = safe_malloc(sizeof(list_t));
+
+    l->list = list;
+    l->impl = impl;
+    return l;
+}
+
+void delete_list(list_t *l) {
+    l->impl->destructor(l->list);
+    safe_free(l);
+}
+
+// Array List 
+
 array_list_t *new_array_list(size_t cs) {
     if (cs == 0) {
         return NULL;
@@ -68,6 +113,8 @@ void al_poll(array_list_t *al, void *dest) {
 
     al->len--;
 }
+
+// Linked List
 
 linked_list_t *new_linked_list(size_t cs) {
     if (cs == 0) {
