@@ -2,14 +2,14 @@
 #include "chutil/debug.h"
 #include <string.h>
 
-array_list_t *new_array_list_w_cap(size_t cs, size_t cp) {
+array_list_t *new_array_list(size_t cs) {
     if (cs == 0) {
         return NULL;
     }
 
     array_list_t *al = safe_malloc(sizeof(array_list_t));
 
-    al->cap = cp == 0 ? 1 : cp;
+    al->cap = 1;
     al->len = 0;
     al->cell_size = cs;
 
