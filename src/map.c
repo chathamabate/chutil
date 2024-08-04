@@ -90,8 +90,43 @@ void delete_hash_map(hash_map_t *hm) {
     safe_free(hm);
 }
 
-void hm_reset_iterator(hash_map_t *hm);
-key_val_pair_t hm_next_kvp(hash_map_t *hm);
+void hm_reset_iterator(hash_map_t *hm) {
+    for (size_t chain_ind = 0; chain_ind < hm->chains_cap; chain_ind++) {
+        if (hm->chains[chain_ind]) {
+            hm->iter_chain_ind = chain_ind;
+            hm->iter = hm->chains[chain_ind];
+            return;
+        }
+    }
+
+    // Our map is empty...
+    hm->iter = NULL;
+}
+
+key_val_pair_t hm_next_kvp(hash_map_t *hm) {
+    if (!(hm->iter)) {
+        return HASH_MAP_EXHAUSTED;
+    }
+
+    key_val_pair_t ret_kvp = kvh_to_kvp(hm->iter);
+
+    if (hm->iter->next) {
+        hm->iter = hm->iter->next;
+    } else {
+        // Find the next non null chain (if it exists)
+        hm->iter_chain_ind++;
+        while (hm->iter_chain_ind < hm->chains_cap && 
+                !(hm->chains[hm->iter_chain_ind])) {
+            hm->iter_chain_ind++;
+        }
+        
+        hm->iter = hm->iter_chain_ind < hm->chains_cap 
+            ? hm->chains[hm->iter_chain_ind] 
+            : NULL;
+    }
+    
+    return ret_kvp;
+}
 
 void hm_put(hash_map_t *hm, const void *key, const void *value) {
     uint32_t hash_val = hm->hash_func(key);
@@ -136,4 +171,34 @@ void *hm_get(hash_map_t *hm, const void *key) {
     return NULL;
 }
 
-bool hm_remove(hash_map_t *hm, const void *key);
+bool hm_remove(hash_map_t *hm, const void *key) {
+    uint32_t hash_val = hm->hash_func(key);
+    size_t chain_ind = hash_val % hm->chains_cap;
+
+    key_val_header_t *prev = NULL;
+    key_val_header_t *iter = hm->chains[chain_ind];
+    while (iter) {
+        key_val_pair_t kvp = kvh_to_kvp(iter);
+        if (iter->hash_val == hash_val && hm->eq_func(kvp_key(hm, kvp), key)) {
+            break;
+        }
+        
+        prev = iter;
+        iter = iter->next;
+    }
+
+    if (!iter) {
+        return false; // No match.
+    }
+
+    if (prev) {
+        prev->next = iter->next;
+    } else {
+        // When iter is the front of a chain.
+        hm->chains[chain_ind] = iter->next;
+    }
+
+    // Finally FREE!!!
+    safe_free(iter);
+    return true;
+}

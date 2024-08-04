@@ -32,6 +32,10 @@ typedef struct _hash_map_t {
 
     size_t chains_cap;
     key_val_header_t **chains;
+
+    size_t iter_chain_ind;
+    key_val_header_t *iter; // header of next pair to return from next_kvp.
+                            // NULL means empty.
 } hash_map_t;
 
 hash_map_t *new_hash_map(size_t ks, size_t vs, 
