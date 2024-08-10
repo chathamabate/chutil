@@ -12,6 +12,9 @@
 typedef bool (*hash_map_eq_ft)(const void *, const void *);
 typedef uint32_t (*hash_map_hash_ft)(const void *);
 
+bool int32_eq(const int *i1, const int *i2);
+uint32_t int32_hash(const int *i);
+
 typedef void *key_val_pair_t;
 #define HASH_MAP_EXHAUSTED NULL
 
