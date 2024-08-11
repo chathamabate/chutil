@@ -68,7 +68,7 @@ hash_map_t *new_hash_map(size_t ks, size_t vs,
 
     hm->chains = safe_malloc(sizeof(key_val_header_t *) * hm->chains_cap);
     for (size_t i = 0; i < hm->chains_cap; i++) {
-        hm->chains = NULL;
+        hm->chains[i] = NULL;
     }
 
     return hm;
