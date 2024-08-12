@@ -8,13 +8,15 @@ static const list_impl_t ARRAY_LIST_IMPL_VAL = {
     .destructor = (list_destructor_ft)delete_array_list,
     .len = (list_len_ft)al_len,
     .cell_size = (list_cell_size_ft)al_cell_size,
-    .get_mut = (list_get_mut_ft)al_get_mut,
     .get = (list_get_ft)al_get,
     .get_copy = (list_get_copy_ft)al_get_copy,
     .set = (list_set_ft)al_set,
     .push = (list_push_ft)al_push,
     .pop = (list_pop_ft)al_pop,
     .poll = (list_poll_ft)al_poll,
+
+    .reset_iterator = (list_reset_iterator_ft)al_reset_iterator,
+    .next = (list_next_ft)al_next,
 };
 const list_impl_t *ARRAY_LIST_IMPL = &ARRAY_LIST_IMPL_VAL;
 
@@ -23,13 +25,15 @@ static const list_impl_t LINKED_LIST_IMPL_VAL = {
     .destructor = (list_destructor_ft)delete_linked_list,
     .len = (list_len_ft)ll_len,
     .cell_size = (list_cell_size_ft)ll_cell_size,
-    .get_mut = (list_get_mut_ft)ll_get_mut,
     .get = (list_get_ft)ll_get,
     .get_copy = (list_get_copy_ft)ll_get_copy,
     .set = (list_set_ft)ll_set,
     .push = (list_push_ft)ll_push,
     .pop = (list_pop_ft)ll_pop,
     .poll = (list_poll_ft)ll_poll,
+
+    .reset_iterator = (list_reset_iterator_ft)ll_reset_iterator,
+    .next = (list_next_ft)ll_next,
 };
 const list_impl_t *LINKED_LIST_IMPL = &LINKED_LIST_IMPL_VAL;
 
@@ -103,9 +107,9 @@ void al_poll(array_list_t *al, void *dest) {
         memcpy(dest, al->arr, al->cell_size);
     }
 
-    uint8_t *curr = al_get_mut(al, 0);
-    uint8_t *next = al_get_mut(al, 1);
-    const uint8_t *end = al_get_mut(al, al->len - 1);
+    uint8_t *curr = al_get(al, 0);
+    uint8_t *next = al_get(al, 1);
+    const uint8_t *end = al_get(al, al->len - 1);
 
     while (next <= end) {
         memcpy(curr, next, al->cell_size);
@@ -114,6 +118,17 @@ void al_poll(array_list_t *al, void *dest) {
     }
 
     al->len--;
+}
+
+void *al_next(array_list_t *al) {
+    void *ret_ptr;
+    if (al->iter_ind < al->len) {
+        ret_ptr = al_get(al, al->iter_ind);
+        al->iter_ind++;
+        return ret_ptr;
+    }
+
+    return NULL;
 }
 
 // Linked List
@@ -146,7 +161,7 @@ void delete_linked_list(linked_list_t *ll) {
     safe_free(ll);
 }
 
-void *ll_get_mut(linked_list_t *ll, size_t i) {
+void *ll_get(linked_list_t *ll, size_t i) {
     linked_list_node_hdr_t *node = ll->first;
     size_t cnt = 0;
 
@@ -230,6 +245,17 @@ void ll_poll(linked_list_t *ll, void *dest) {
     ll->len--;
 
     safe_free(first);
+}
+
+void *ll_next(linked_list_t *ll) {
+    if (ll->iter) {
+        void *val_ptr = llnh_get_cell(ll->iter);
+        ll->iter = ll->iter->next;
+
+        return val_ptr;
+    }
+
+    return NULL;
 }
 
 
