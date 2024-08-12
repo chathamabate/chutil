@@ -19,6 +19,7 @@ typedef void (*list_push_ft)(void *, const void *);
 typedef void (*list_pop_ft)(void *, void *);
 typedef void (*list_poll_ft)(void *, void *);
 
+
 typedef struct _list_impl_t {
     list_constructor_ft constructor;
     list_destructor_ft  destructor;
