@@ -1,16 +1,18 @@
 
 #include "chutil/list.h"
+#include "chutil/debug.h"
+
 #include "unity/unity_internals.h"
 #include "unity/unity.h"
 #include <stdbool.h>
 
-static void l_cell_size_test(const list_impl_t *impl) {
+static void test_l_cell_size(const list_impl_t *impl) {
     list_t *l = new_list(impl, sizeof(uint32_t));
     TEST_ASSERT_EQUAL(sizeof(uint32_t), l_cell_size(l));
     delete_list(l);
 }
 
-static void l_push_test(const list_impl_t *impl) {
+static void test_l_push(const list_impl_t *impl) {
     list_t *l = new_list(impl, sizeof(uint32_t));
 
     TEST_ASSERT_EQUAL_size_t(0, l_len(l));
@@ -27,7 +29,7 @@ static void l_push_test(const list_impl_t *impl) {
     delete_list(l);
 }
 
-static void l_set_get_test(const list_impl_t *impl) {
+static void test_l_set_get(const list_impl_t *impl) {
     list_t *l = new_list(impl, sizeof(uint64_t));
 
     uint64_t in, out;
@@ -67,7 +69,7 @@ static inline bool c_eq(const coord_t *c1, const coord_t *c2) {
     return c1->x == c2->x && c1->y == c2->y && c1->z == c2->z;
 }
 
-static void l_pop_test(const list_impl_t *impl) {
+static void test_l_pop(const list_impl_t *impl) {
     list_t *l = new_list(impl, sizeof(coord_t));
 
     coord_t in;
@@ -88,7 +90,7 @@ static void l_pop_test(const list_impl_t *impl) {
     delete_list(l);
 }
 
-static void l_poll_test(const list_impl_t *impl) {
+static void test_l_poll(const list_impl_t *impl) {
     list_t *l = new_list(impl, sizeof(coord_t));
 
     coord_t in;
@@ -108,7 +110,7 @@ static void l_poll_test(const list_impl_t *impl) {
     delete_list(l);
 }
 
-static void l_poll_pop_test(const list_impl_t *impl) {
+static void test_l_poll_pop(const list_impl_t *impl) {
     list_t *l = new_list(impl, sizeof(uint32_t)); 
 
     uint32_t in, out;
@@ -153,21 +155,46 @@ static void l_poll_pop_test(const list_impl_t *impl) {
     delete_list(l);
 }
 
-static void l_test(const list_impl_t *impl) {
-    l_cell_size_test(impl);
-    l_push_test(impl);
-    l_set_get_test(impl);
-    l_pop_test(impl);
-    l_poll_test(impl);
-    l_poll_pop_test(impl);
+static void test_l_iterator(const list_impl_t *impl) {
+    list_t *l = new_list(impl, sizeof(size_t)); 
+
+    const size_t NUM_VALS = 50;  
+    bool *seen = safe_malloc(sizeof(bool) * NUM_VALS);
+    size_t i;
+    
+    for (i = 0; i < NUM_VALS; i++) {
+        l_push(l, &i);
+        seen[i] = false;
+    }
+
+    size_t *val_ptr;
+    l_reset_iterator(l);
+    while ((val_ptr = (size_t *)l_next(l)) != NULL) {
+        i = *val_ptr; 
+        TEST_ASSERT_FALSE(seen[i]);
+        seen[i] = true;
+    }
+    
+    safe_free(seen);
+    delete_list(l);
+}
+
+static void test_l(const list_impl_t *impl) {
+    test_l_cell_size(impl);
+    test_l_push(impl);
+    test_l_set_get(impl);
+    test_l_pop(impl);
+    test_l_poll(impl);
+    test_l_poll_pop(impl);
+    test_l_iterator(impl);
 }
 
 static void array_list_tests(void) {
-    l_test(ARRAY_LIST_IMPL); 
+    test_l(ARRAY_LIST_IMPL); 
 }
 
 static void linked_list_tests(void) {
-    l_test(LINKED_LIST_IMPL);
+    test_l(LINKED_LIST_IMPL);
 }
 
 void list_tests(void) {

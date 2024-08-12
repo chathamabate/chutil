@@ -123,8 +123,11 @@ void al_poll(array_list_t *al, void *dest) {
 }
 
 void *al_next(array_list_t *al) {
-    if (al->iter_ind < al->cap) {
-        return al_get_mut(al, al->iter_ind);
+    void *ret_ptr;
+    if (al->iter_ind < al->len) {
+        ret_ptr = al_get_mut(al, al->iter_ind);
+        al->iter_ind++;
+        return ret_ptr;
     }
 
     return NULL;
