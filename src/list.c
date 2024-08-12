@@ -15,6 +15,9 @@ static const list_impl_t ARRAY_LIST_IMPL_VAL = {
     .push = (list_push_ft)al_push,
     .pop = (list_pop_ft)al_pop,
     .poll = (list_poll_ft)al_poll,
+
+    .reset_iterator = (list_reset_iterator_ft)al_reset_iterator,
+    .next = (list_next_ft)al_next,
 };
 const list_impl_t *ARRAY_LIST_IMPL = &ARRAY_LIST_IMPL_VAL;
 
@@ -30,6 +33,9 @@ static const list_impl_t LINKED_LIST_IMPL_VAL = {
     .push = (list_push_ft)ll_push,
     .pop = (list_pop_ft)ll_pop,
     .poll = (list_poll_ft)ll_poll,
+
+    .reset_iterator = (list_reset_iterator_ft)ll_reset_iterator,
+    .next = (list_next_ft)ll_next,
 };
 const list_impl_t *LINKED_LIST_IMPL = &LINKED_LIST_IMPL_VAL;
 
@@ -114,6 +120,14 @@ void al_poll(array_list_t *al, void *dest) {
     }
 
     al->len--;
+}
+
+void *al_next(array_list_t *al) {
+    if (al->iter_ind < al->cap) {
+        return al_get_mut(al, al->iter_ind);
+    }
+
+    return NULL;
 }
 
 // Linked List
@@ -230,6 +244,17 @@ void ll_poll(linked_list_t *ll, void *dest) {
     ll->len--;
 
     safe_free(first);
+}
+
+void *ll_next(linked_list_t *ll) {
+    if (ll->iter) {
+        void *val_ptr = llnh_get_cell(ll->iter);
+        ll->iter = ll->iter->next;
+
+        return val_ptr;
+    }
+
+    return NULL;
 }
 
 

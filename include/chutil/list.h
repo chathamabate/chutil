@@ -18,6 +18,8 @@ typedef void (*list_set_ft)(void *, size_t, const void *);
 typedef void (*list_push_ft)(void *, const void *);
 typedef void (*list_pop_ft)(void *, void *);
 typedef void (*list_poll_ft)(void *, void *);
+typedef void (*list_reset_iterator_ft)(void *);
+typedef void *(*list_next_ft)(void *);
 
 
 typedef struct _list_impl_t {
@@ -32,6 +34,9 @@ typedef struct _list_impl_t {
     list_push_ft        push;
     list_pop_ft         pop;
     list_poll_ft        poll;
+
+    list_reset_iterator_ft  reset_iterator;
+    list_next_ft            next;
 } list_impl_t;
 
 typedef struct _list_t {
@@ -81,6 +86,14 @@ static inline void l_poll(list_t *l, void *dest) {
     l->impl->poll(l->list, dest);
 }
 
+static inline void l_reset_iterator(list_t *l) {
+    l->impl->reset_iterator(l->list);
+}
+
+static inline void *l_next(list_t *l) {
+    return l->impl->next(l->list);
+}
+
 // Concrete Arraylist
 
 typedef struct _array_list_t {
@@ -88,6 +101,8 @@ typedef struct _array_list_t {
     size_t len;
     size_t cell_size;
     void *arr; // Always will be non-NULL
+
+    size_t iter_ind;
 } array_list_t;
 
 array_list_t *new_array_list(size_t cs);
@@ -126,6 +141,12 @@ void al_push(array_list_t *al, const void *src);
 void al_pop(array_list_t *al, void *dest);
 void al_poll(array_list_t *al, void *dest);
 
+static inline void al_reset_iterator(array_list_t *al) {
+    al->iter_ind = 0;
+}
+
+void *al_next(array_list_t *al);
+
 // Concrete Linked List
 
 typedef struct _linked_list_node_hdr_t {
@@ -143,6 +164,8 @@ typedef struct _linked_list_t {
 
     linked_list_node_hdr_t *first;
     linked_list_node_hdr_t *last;
+
+    linked_list_node_hdr_t *iter;
 } linked_list_t;
 
 linked_list_t *new_linked_list(size_t cs);
@@ -174,6 +197,11 @@ void ll_push(linked_list_t *ll, const void *src);
 void ll_pop(linked_list_t *ll, void *dest);
 void ll_poll(linked_list_t *ll, void *dest);
 
+static inline void ll_reset_iterator(linked_list_t *ll) {
+    ll->iter = ll->first;
+}
+
+void *ll_next(linked_list_t *ll);
 
 
 #endif
