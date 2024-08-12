@@ -90,6 +90,4 @@ static inline bool hm_contains(hash_map_t *hm, const void *key) {
     return false;
 }
 
-// Some helper hash and eqs funcs.
-
 #endif

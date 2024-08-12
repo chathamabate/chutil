@@ -1,6 +1,7 @@
 
 #include "chutil/map.h"
 #include "chutil/debug.h"
+#include <string.h>
 
 static inline key_val_pair_t kvh_to_kvp(key_val_header_t *kvh) {
     return (uint8_t *)kvh + sizeof(key_val_header_t);
@@ -115,6 +116,7 @@ key_val_pair_t hm_next_kvp(hash_map_t *hm) {
     } else {
         // Find the next non null chain (if it exists)
         hm->iter_chain_ind++;
+
         while (hm->iter_chain_ind < hm->chains_cap && 
                 !(hm->chains[hm->iter_chain_ind])) {
             hm->iter_chain_ind++;
@@ -146,8 +148,18 @@ void hm_put(hash_map_t *hm, const void *key, const void *value) {
     // No match... new kvp must be made...
     key_val_header_t *new_kvh = safe_malloc(sizeof(key_val_header_t) + 
             hm->key_size + hm->value_size);
+    
+    // Place our header in the chain.
     new_kvh->next = hm->chains[chain_ind]; 
     hm->chains[chain_ind] = new_kvh;
+
+    new_kvh->hash_val = hash_val;
+
+    key_val_pair_t kvp = kvh_to_kvp(new_kvh);
+
+    // populate the fields.
+    memcpy((void *)kvp_key(hm, kvp), key, hm->key_size);
+    memcpy(kvp_val(hm, kvp), value, hm->value_size);
 
     // Finally, increase our number of keys and check resize!
     hm->num_keys++;
@@ -200,5 +212,8 @@ bool hm_remove(hash_map_t *hm, const void *key) {
 
     // Finally FREE!!!
     safe_free(iter);
+    
+    hm->num_keys--;
+
     return true;
 }
