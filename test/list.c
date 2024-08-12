@@ -51,7 +51,7 @@ static void test_l_set_get(const list_impl_t *impl) {
     TEST_ASSERT_EQUAL_UINT64(in, out);
 
     l_push(l, &in);
-    mut_out_ptr = l_get_mut(l, 3);
+    mut_out_ptr = l_get(l, 3);
     in = 25;
     *mut_out_ptr = in;
     l_get_copy(l, 3, &out);
