@@ -45,7 +45,7 @@ FULL_OBJS	:=$(addprefix $(BUILD_DIR)/,$(OBJS))
 
 TEST_HEADERS	:=$(wildcard $(TEST_DIR)/*.h)
 TEST_OBJS		:=$(patsubst %.c,%.o,$(TEST_SRCS))
-FULL_TEST_OBJS	:=$(addprefix $(BUILD_TEST_DIR)/test,$(TEST_OBJS))
+FULL_TEST_OBJS	:=$(addprefix $(BUILD_TEST_DIR)/,$(TEST_OBJS))
 
 # It is important our local include is first.
 # This should be searched first.
@@ -59,7 +59,7 @@ DEPS_FLAGS	:=$(addprefix -L,$(DEPS_PATHS)) $(foreach dep,$(DEPS),-l$(dep))
 
 .PHONY: all lib test uninstall install clean clangd
 
-all: $(LIB_FILLE)
+all: lib test
 
 lib: $(LIB_FILE)
 
@@ -70,7 +70,7 @@ uninstall:
 	rm -f $(INSTALL_DIR)/$(LIB_FILE_NAME)
 
 install: uninstall $(LIB_FILE)
-	cp -r $(INCLUDE_DIR) $(INSTALL_DIR)/include
+	cp -r $(INCLUDE_DIR)/$(LIB_NAME) $(INSTALL_DIR)/include
 	cp $(LIB_FILE) $(INSTALL_DIR)
 
 clean:
