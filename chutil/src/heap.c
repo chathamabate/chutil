@@ -51,6 +51,40 @@ void *hp_peek(heap_t *hp) {
     return NULL;
 }
 
+// This call assumes the table inside hp is a valid heap
+// from [0, e-1].
+//
+// This function assumes we are trying to add an element with
+// priority p to our "subheap".
+//
+// It will shift our heap accordingly, and return the place i
+// where our new element should be copied into.
+//
+// NOTE: This will probably write over the cell at index e.
+static size_t hp_bubble_up(heap_t *hp, size_t e, size_t p) {
+    size_t i = e;
+    while (i > 0) {
+        size_t parent = i / 2;
+
+        // Calculate these headers everytime for simplicity.
+        heap_val_header_t *curr_hdr = hp_get_header(hp, i);
+        heap_val_header_t *parent_hdr = hp_get_header(hp, parent);
+
+        if (parent_hdr->priority <= p) {
+            break;
+        }
+
+        // If we have a higher priority than our parent,
+        // we must bubble the parent down.
+
+        memcpy(curr_hdr, parent_hdr, hp->cell_size);
+        
+        i = parent;
+    }
+
+    return i;
+}
+
 bool hp_pop(heap_t *hp, void *dest) {
     if (hp->len == 0) {
         return false;
@@ -119,28 +153,7 @@ void hp_push(heap_t *hp, const void *src) {
     }
 
     size_t p = hp->priority_func(src);
-    size_t i = hp->len;
-
-    // When this loop exits, i will point to where we should copy src.
-
-    while (i > 0) {
-        size_t parent = i / 2;
-
-        // Calculate these headers everytime for simplicity.
-        heap_val_header_t *curr_hdr = hp_get_header(hp, i);
-        heap_val_header_t *parent_hdr = hp_get_header(hp, parent);
-
-        if (parent_hdr->priority <= p) {
-            break;
-        }
-
-        // If we have a higher priority than our parent,
-        // we must bubble the parent down.
-
-        memcpy(curr_hdr, parent_hdr, hp->cell_size);
-        
-        i = parent;
-    }
+    size_t i = hp_bubble_up(hp, hp->len, p);
 
     // i will point to the spot we've made available.
     heap_val_header_t *spot_hdr = hp_get_header(hp, i);
@@ -162,6 +175,25 @@ void *hp_next(heap_t *hp) {
 }
 
 void hp_re_heap(heap_t *hp) {
-    // This is basically an implementation of heapsort.
+    void *val_buf = safe_malloc(hp->val_size);
+
+    size_t e = 1;
+    while (e < hp->len) {
+        heap_val_header_t *end_hdr = hp_get_header(hp, e);
+
+        size_t end_p = end_hdr->priority;
+        memcpy(val_buf, hvh_to_hv(end_hdr), hp->val_size);
+
+        size_t i = hp_bubble_up(hp, e, end_p);
+
+        // Only copy if we need to!
+        if (i != e) {
+            heap_val_header_t *spot_hdr = hp_get_header(hp, i); 
+            spot_hdr->priority = end_p;
+            memcpy(hvh_to_hv(spot_hdr), val_buf, hp->val_size);
+        }
+    }
+
+    safe_free(val_buf);
 }
 
