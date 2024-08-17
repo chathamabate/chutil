@@ -49,7 +49,7 @@ FULL_TEST_OBJS	:=$(addprefix $(BUILD_TEST_DIR)/,$(TEST_OBJS))
 
 # It is important our local include is first.
 # This should be searched first.
-INCLUDE_PATHS	:=$(INCLUDE_DIR) $(INSTALL_DIR)/include
+INCLUDE_PATHS	:=$(INCLUDE_DIR) $(SRC_DIR) $(INSTALL_DIR)/include
 INCLUDE_FLAGS	:=$(addprefix -I,$(INCLUDE_PATHS))
 
 # Where to look for static library dependencies.
