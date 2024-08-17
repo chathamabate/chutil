@@ -61,19 +61,30 @@ void hp_push(heap_t *hp, const void *src) {
     size_t p = hp->priority_func(src);
     size_t i = hp->len;
 
-    // Hmmm what do we do here???
-    // mmmmm, this is annoying...
+    // When this loop exits, i will point to where we should copy src.
 
     while (i > 0) {
         size_t parent = i / 2;
+
+        // Calculate these headers everytime for simplicity.
+        heap_val_header_t *curr_hdr = hp_get_header(hp, i);
         heap_val_header_t *parent_hdr = hp_get_header(hp, parent);
-        
+
         if (parent_hdr->priority <= p) {
             break;
         }
+
+        // If we have a higher priority than our parent,
+        // we must bubble the parent down.
+
+        memcpy(curr_hdr, parent_hdr, hp->cell_size);
         
         i = parent;
     }
 
+    // i will point to the spot we've made available.
+    heap_val_header_t *spot_hdr = hp_get_header(hp, i);
+    spot_hdr->priority = p;
+    memcpy(hvh_to_hv(spot_hdr), src, hp->val_size);
 }
 
