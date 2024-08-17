@@ -20,6 +20,8 @@ typedef struct _heap_t {
     void *table;
 
     heap_priority_ft priority_func;
+
+    size_t iter;
 } heap_t;
 
 heap_t *new_heap(size_t vs, heap_priority_ft pf);
@@ -38,8 +40,12 @@ bool hp_pop(heap_t *hp, void *dest);
 
 void hp_push(heap_t *hp, const void *src);
 
-void hp_reset_iterator(heap_t *hp);
+static inline void hp_reset_iterator(heap_t *hp) {
+    hp->iter = 0;
+}
+
 void *hp_next(heap_t *hp);
+
 void hp_re_heap(heap_t *hp);
 
 #endif

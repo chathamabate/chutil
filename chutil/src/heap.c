@@ -150,3 +150,18 @@ void hp_push(heap_t *hp, const void *src) {
     hp->len++;
 }
 
+void *hp_next(heap_t *hp) {
+    heap_val_header_t *hdr = hp_get_header(hp, hp->iter);
+
+    if (hdr) {
+        hp->iter++;
+        return hvh_to_hv(hdr); 
+    }
+
+    return NULL;
+}
+
+void hp_re_heap(heap_t *hp) {
+    // This is basically an implementation of heapsort.
+}
+
