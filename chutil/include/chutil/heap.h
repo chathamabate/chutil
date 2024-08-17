@@ -6,15 +6,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+// This will be a MIN heap by default.
+// 0 will be the "highest" priority.
+
 typedef uint32_t (*heap_priority_ft)(const void *);
-
-typedef struct _heap_val_header_t {
-    uint32_t priority;
-} heap_val_header_t;
-
-static inline void *hvh_to_hv(heap_val_header_t *hvh) {
-    return hvh + 1; // Just skip over the header.
-}
 
 typedef struct _heap_t {
     size_t cell_size;
