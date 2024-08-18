@@ -118,27 +118,38 @@ bool hp_pop(heap_t *hp, void *dest) {
     while (true) {
         heap_val_header_t *curr_hdr = hp_get_header(hp, i);
 
+        size_t next_i;
+        heap_val_header_t *swap_hdr = NULL;
+
         size_t left = (i * 2) + 1;
         heap_val_header_t *left_hdr = hp_get_header(hp, left);
+        if (left_hdr && left_hdr->priority < p) {
+            next_i = left;
+            swap_hdr = left_hdr;
+        }
 
         size_t right = (i * 2) + 2;
         heap_val_header_t *right_hdr = hp_get_header(hp, right);
-
-        if (left_hdr && left_hdr->priority < p) {
-            memcpy(curr_hdr, left_hdr, hp->cell_size); 
-            i = left;
-            continue;
-        }
-
         if (right_hdr && right_hdr->priority < p) {
-            memcpy(curr_hdr, right_hdr, hp->cell_size); 
-            i = right;
-            continue;
+            // If we have a right header with higher priority than curr,
+            // then check it against the current swap header (if there is one.)
+            if (!swap_hdr || right_hdr->priority < swap_hdr->priority) {
+                next_i = right;
+                swap_hdr = right_hdr;
+            }
         }
-        
-        // If we make it here, there is either no left/right children.
-        // Or our priority higher than our children.
-        break;
+
+        // If there is no child which can be bubbled up
+        // correctly. We found our spot, copy and return.
+        if (!swap_hdr) {
+            memcpy(curr_hdr, last_hdr, hp->cell_size);
+            return true;
+        }
+
+        // Otherwise, progress.
+
+        memcpy(curr_hdr, swap_hdr, hp->cell_size);
+        i = next_i;
     }
 
     // Now, we copy our "last" cell into i.
