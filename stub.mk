@@ -43,14 +43,14 @@ HEADERS		:=$(wildcard $(INCLUDE_DIR)/*.h)
 OBJS		:=$(patsubst %.c,%.o,$(SRCS))
 FULL_OBJS	:=$(addprefix $(BUILD_DIR)/,$(OBJS))
 
-TEST_HEADERS	:=$(wildcard $(TEST_DIR)/*.h)
-TEST_OBJS		:=$(patsubst %.c,%.o,$(TEST_SRCS))
-FULL_TEST_OBJS	:=$(addprefix $(BUILD_TEST_DIR)/,$(TEST_OBJS))
-
 # It is important our local include is first.
 # This should be searched first.
 INCLUDE_PATHS	:=$(INCLUDE_DIR) $(SRC_DIR) $(INSTALL_DIR)/include
 INCLUDE_FLAGS	:=$(addprefix -I,$(INCLUDE_PATHS))
+
+TEST_HEADERS	:=$(wildcard $(TEST_DIR)/*.h)
+TEST_OBJS		:=$(patsubst %.c,%.o,$(TEST_SRCS))
+FULL_TEST_OBJS	:=$(addprefix $(BUILD_TEST_DIR)/,$(TEST_OBJS))
 
 TEST_INCLUDE_PATHS :=$(INCLUDE_DIR) $(TEST_DIR) $(INSTALL_DIR)/include
 TEST_INCLUDE_FLAGS :=$(addprefix -I,$(TEST_INCLUDE_PATHS))
@@ -79,6 +79,7 @@ install: uninstall $(LIB_FILE)
 clean:
 	rm -rf $(BUILD_DIR)
 
+# Maybe edit how this clangd thing works??
 clangd:
 	echo "CompileFlags:" > .clangd
 	echo "  Add:" >> .clangd
