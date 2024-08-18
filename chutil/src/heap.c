@@ -195,6 +195,13 @@ void *hp_next(heap_t *hp) {
 }
 
 void hp_re_heap(heap_t *hp) {
+    // First thing we do, is recalculate all priorities!
+    for (size_t i = 0; i < hp->len; i++) {
+        heap_val_header_t *hdr = hp_get_header(hp, i);
+        const void *val = hvh_to_hv(hdr);
+        hdr->priority = hp->priority_func(val);
+    }
+
     void *val_buf = safe_malloc(hp->val_size);
 
     size_t e = 1;
@@ -212,6 +219,8 @@ void hp_re_heap(heap_t *hp) {
             spot_hdr->priority = end_p;
             memcpy(hvh_to_hv(spot_hdr), val_buf, hp->val_size);
         }
+
+        e++;
     }
 
     safe_free(val_buf);

@@ -43,6 +43,10 @@ static void test_hp_simple1(void) {
     hp_push(hp, &in);
     TEST_ASSERT_EQUAL_size_t(1, hp_len(hp));
 
+    uint32_t *root = hp_peek(hp);
+    TEST_ASSERT_NOT_NULL(root);
+    TEST_ASSERT_EQUAL_UINT32(in, *root);
+
     bool popped = hp_pop(hp, &out);
     TEST_ASSERT_TRUE(popped);
 
@@ -92,9 +96,47 @@ static void test_hp_big(void) {
     delete_heap(hp);
 }
 
+static void test_hp_re_heap(void) {
+    heap_t *hp = new_heap(sizeof(uint32_t), (heap_priority_ft)u32_pf);
+
+    const size_t n = 20;
+    for (size_t i = 0; i < n; i++) {
+        hp_push(hp, &i);         
+    }
+
+    // We are going to set all odd values in the heap to 0.
+    hp_reset_iterator(hp);
+    uint32_t *val;
+    while ((val = (uint32_t *)hp_next(hp))) {
+        if (*val % 2 == 1) {
+            *val = 0;
+        }
+    }
+
+    const size_t evens = (n / 2) + (n % 2);
+    const size_t high_even = (n - 2) + (n % 2);
+
+    hp_re_heap(hp);
+
+    uint32_t out;
+    for (size_t i = 0; i < evens; i++) {
+        TEST_ASSERT_TRUE(hp_pop(hp, &out)); 
+        TEST_ASSERT_EQUAL_UINT32(high_even - (2*i), out);
+    }
+
+    // Rest should be 0.
+    for (size_t i = 0; i < n - evens; i++) {
+        TEST_ASSERT_TRUE(hp_pop(hp, &out)); 
+        TEST_ASSERT_EQUAL_UINT32(0, out);
+    }
+
+    delete_heap(hp);
+}
+
 void heap_tests(void) {
     RUN_TEST(test_hp_simple1); 
     RUN_TEST(test_hp_simple2);
     RUN_TEST(test_hp_big);
+    RUN_TEST(test_hp_re_heap);
 }
 
