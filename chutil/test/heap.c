@@ -133,10 +133,40 @@ static void test_hp_re_heap(void) {
     delete_heap(hp);
 }
 
+// This is for testing an awkward cell size!
+
+static uint32_t str_pf(const char *s) {
+    return (uint32_t)(s[0]);
+}
+
+#define TEST_HP_STR_CAP 10
+static void test_hp_str(void) {
+    heap_t *hp = new_heap(sizeof(char) * TEST_HP_STR_CAP, (heap_priority_ft)str_pf);
+
+    hp_push(hp, "hello");
+    hp_push(hp, "meh");
+    hp_push(hp, "ah");
+    hp_push(hp, "zebra");
+
+    const char *exp_out[4] = {
+        "ah", "hello", "meh", "zebra"
+    };
+
+    char out_buf[TEST_HP_STR_CAP];
+    size_t i = 0;
+    while (hp_pop(hp, out_buf)) {
+        TEST_ASSERT_EQUAL_STRING(exp_out[i], out_buf);
+        i++;
+    }
+
+    delete_heap(hp);
+}
+
 void heap_tests(void) {
     RUN_TEST(test_hp_simple1); 
     RUN_TEST(test_hp_simple2);
     RUN_TEST(test_hp_big);
     RUN_TEST(test_hp_re_heap);
+    RUN_TEST(test_hp_str);
 }
 
