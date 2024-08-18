@@ -1,5 +1,4 @@
 
-
 #include "chutil/heap.h"
 #include "chutil/debug.h"
 
@@ -48,7 +47,11 @@ static inline heap_val_header_t *hp_get_header(heap_t *hp, size_t i) {
 }
 
 void *hp_peek(heap_t *hp) {
-    return NULL;
+    if (hp->len == 0) {
+        return NULL;
+    }
+
+    return hvh_to_hv(hp_get_header(hp, 0));
 }
 
 // This call assumes the table inside hp is a valid heap

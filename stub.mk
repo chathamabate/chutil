@@ -52,6 +52,9 @@ FULL_TEST_OBJS	:=$(addprefix $(BUILD_TEST_DIR)/,$(TEST_OBJS))
 INCLUDE_PATHS	:=$(INCLUDE_DIR) $(SRC_DIR) $(INSTALL_DIR)/include
 INCLUDE_FLAGS	:=$(addprefix -I,$(INCLUDE_PATHS))
 
+TEST_INCLUDE_PATHS :=$(INCLUDE_DIR) $(TEST_DIR) $(INSTALL_DIR)/include
+TEST_INCLUDE_FLAGS :=$(addprefix -I,$(TEST_INCLUDE_PATHS))
+
 # Where to look for static library dependencies.
 # Again, it is important our local build is first.
 DEPS_PATHS 	:=$(BUILD_DIR) $(INSTALL_DIR)
@@ -81,8 +84,8 @@ clangd:
 	echo "  Add:" >> .clangd
 	$(foreach flag,$(INCLUDE_FLAGS),echo "    - $(flag)" >> .clangd;) 
 
-$(BUILD_DIR):
-	mkdir $@
+$(BUILD_DIR) $(BUILD_TEST_DIR):
+	mkdir -p $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS) | $(BUILD_DIR)
 	$(CC) -c $(FLAGS) $(INCLUDE_FLAGS) $< -o $@
@@ -91,11 +94,8 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS) | $(BUILD_DIR)
 $(LIB_FILE): $(FULL_OBJS)
 	ar rcs $@ $^
 
-$(BUILD_TEST_DIR):
-	mkdir $@
-
 $(BUILD_TEST_DIR)/%.o: $(TEST_DIR)/%.c $(HEADERS) $(TEST_HEADERS) | $(BUILD_TEST_DIR)
-	$(CC) -c $(FLAGS) $(INCLUDE_FLAGS) $< -o $@
+	$(CC) -c $(FLAGS) $(TEST_INCLUDE_FLAGS) $< -o $@
 
 # Always include unity!
 $(BUILD_TEST_DIR)/test: $(FULL_TEST_OBJS) $(LIB_FILE)
