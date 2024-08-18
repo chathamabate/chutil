@@ -30,6 +30,8 @@ heap_t *new_heap(size_t vs, heap_priority_ft pf) {
 
     hp->priority_func = pf;
 
+    hp->iter = 0;
+
     return hp;
 }
 
@@ -68,6 +70,9 @@ static size_t hp_bubble_up(heap_t *hp, size_t e, size_t p) {
     size_t i = e;
     while (i > 0) {
         size_t parent = i / 2;
+        if (i % 2 == 0) {
+            parent--;
+        }
 
         // Calculate these headers everytime for simplicity.
         heap_val_header_t *curr_hdr = hp_get_header(hp, i);
@@ -163,18 +168,19 @@ void hp_push(heap_t *hp, const void *src) {
     // First check if a resize is needed.
     if (hp->len == hp->cap) {
         hp->cap = hp->cap * 2;
-        hp->table = safe_realloc(hp->table, hp->cap);
+        hp->table = safe_realloc(hp->table, hp->cap * hp->cell_size);
     }
 
+    // First thing we do is expand.
+    hp->len++;
+
     size_t p = hp->priority_func(src);
-    size_t i = hp_bubble_up(hp, hp->len, p);
+    size_t i = hp_bubble_up(hp, hp->len - 1, p);
 
     // i will point to the spot we've made available.
     heap_val_header_t *spot_hdr = hp_get_header(hp, i);
     spot_hdr->priority = p;
     memcpy(hvh_to_hv(spot_hdr), src, hp->val_size);
-
-    hp->len++;
 }
 
 void *hp_next(heap_t *hp) {

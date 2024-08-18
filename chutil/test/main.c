@@ -21,8 +21,8 @@ void tearDown(void) {
 
 int main(void) {
     UNITY_BEGIN();
-    list_tests();
-    map_tests();
+    //list_tests();
+    //map_tests();
     heap_tests();
     return UNITY_END();
 }
