@@ -39,7 +39,7 @@ include $(PROJ_DIR)/vars.mk
 # Each library will be built entirely independently to its
 # dependencies. It will search for libraries in the install path.
 
-HEADERS		:=$(wildcard $(INCLUDE_DIR)/*.h)
+HEADERS		:=$(wildcard $(INCLUDE_DIR)/$(LIB_NAME)/*.h)
 OBJS		:=$(patsubst %.c,%.o,$(SRCS))
 FULL_OBJS	:=$(addprefix $(BUILD_DIR)/,$(OBJS))
 

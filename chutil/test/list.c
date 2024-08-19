@@ -1,5 +1,6 @@
 
 #include "chutil/list.h"
+#include "list.h"
 #include "chutil/debug.h"
 
 #include "unity/unity_internals.h"
