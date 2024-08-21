@@ -38,6 +38,19 @@ void delete_string(string_t *s) {
     safe_free(s);
 }
 
+bool s_equals(const string_t *s1, const string_t *s2) {
+    return strcmp(s1->data, s2->data) == 0;
+}
+
+uint32_t s_hash(const string_t *s) {
+    uint32_t hash_val = 23;    
+    for (size_t i = 0; i < s_len(s); i++) {
+        hash_val = (hash_val * 31) + s_get_char(s, i);
+    }
+
+    return hash_val;
+}
+
 string_t *s_substring(const string_t *s, size_t start, size_t end) {
     if (end > s->len) {
         end = s->len;

@@ -1,8 +1,9 @@
 
-#ifndef CHUTIL_STR_H
-#define CHUTIL_STR_H
+#ifndef CHUTIL_STRING_H
+#define CHUTIL_STRING_H
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct _string_t {
     size_t cap;  // how large data is.
@@ -14,6 +15,9 @@ typedef struct _string_t {
 string_t *new_string(void);
 string_t *new_string_from_cstr(const char *cstr);
 void delete_string(string_t *s);
+
+bool s_equals(const string_t *s1, const string_t *s2);
+uint32_t s_hash(const string_t *s);
 
 static inline size_t s_len(const string_t *s) {
     return s->len;
