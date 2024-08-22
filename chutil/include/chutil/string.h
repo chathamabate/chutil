@@ -19,6 +19,17 @@ void delete_string(string_t *s);
 bool s_equals(const string_t *s1, const string_t *s2);
 uint32_t s_hash(const string_t *s);
 
+// These "indirect functions are meant to help you when using hashmaps.
+// For example in a map, we are likely to store string_t *'s, not string_t's.
+// Thus, they will be passed around as string_t **'s
+static inline bool s_indirect_equals(const string_t * const *s1, const string_t * const *s2) {
+    return s_equals(*s1, *s2);
+}
+
+static inline uint32_t s_indirect_hash(const string_t * const *s) {
+    return s_hash(*s);
+}
+
 static inline size_t s_len(const string_t *s) {
     return s->len;
 }

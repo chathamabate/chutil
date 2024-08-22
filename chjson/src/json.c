@@ -3,6 +3,7 @@
 #include "chutil/debug.h"
 #include "chutil/map.h"
 #include "chutil/string.h"
+#include <stdarg.h>
 #include <stdio.h>
 
 static json_t _NULL_JSON = {
@@ -12,7 +13,7 @@ static json_t *NULL_JSON = &_NULL_JSON;
 
 json_t *new_json_object(void) {
     hash_map_t *hm = new_hash_map(sizeof(string_t *), sizeof(json_t *),
-           (hash_map_hash_ft)s_hash, (hash_map_eq_ft)s_equals);
+           (hash_map_hash_ft)s_indirect_hash, (hash_map_eq_ft)s_indirect_equals);
 
     json_t *json = safe_malloc(sizeof(json_t));
 
@@ -22,20 +23,26 @@ json_t *new_json_object(void) {
     return json;
 }
 
-json_t *new_json_object_from_kvps(size_t num_pairs, ...) {
+json_t *_new_json_object_from_kvps(int dummy, ...) {
     json_t *json = new_json_object();
     hash_map_t *hm = json->object_ptr;
-    json_key_val_pair_t json_kvp;
 
     va_list arg_ptr;
-    va_start(arg_ptr, num_pairs);
+    va_start(arg_ptr, dummy);
 
+    while (true) {
+        const char *key = va_arg(arg_ptr, const char *);
+        if (!key) {
+            break;
+        }
 
-    for (size_t i = 0; i < num_pairs; i++) {
-        json_kvp = va_arg(arg_ptr, json_key_val_pair_t); 
-        string_t *key_str = new_string_from_cstr(json_kvp.key);
+        json_t *val = va_arg(arg_ptr, json_t *);
+        if (!val) {
+            break;
+        }
 
-        hm_put(hm, &(key_str), &(json_kvp.val));
+        string_t *key_string = new_string_from_cstr(key);
+        hm_put(hm, &key_string, &val);
     }
 
     va_end(arg_ptr);
@@ -53,17 +60,18 @@ json_t *new_json_list(void) {
     return json;
 }
 
-json_t *new_json_list_from_eles(size_t num_eles, ...) {
+json_t *_new_json_list_from_eles(int dummy, ...) {
     json_t *json = new_json_list();
     list_t *l = json->list_ptr;
-    json_t *ele;
+
 
     va_list arg_ptr;
-    va_start(arg_ptr, num_eles);
+    va_start(arg_ptr, dummy);
 
-    for (size_t i = 0; i < num_eles; i++) {
-        ele =  va_arg(arg_ptr, json_t *);
+    json_t *ele = va_arg(arg_ptr, json_t *);
+    while (ele) {
         l_push(l, &ele);
+        ele = va_arg(arg_ptr, json_t *);
     }
 
     va_end(arg_ptr);
