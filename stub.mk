@@ -39,18 +39,23 @@ include $(PROJ_DIR)/vars.mk
 # Each library will be built entirely independently to its
 # dependencies. It will search for libraries in the install path.
 
-HEADERS		:=$(wildcard $(INCLUDE_DIR)/*.h)
+HEADERS		:=$(wildcard $(INCLUDE_DIR)/$(LIB_NAME)/*.h)
 OBJS		:=$(patsubst %.c,%.o,$(SRCS))
 FULL_OBJS	:=$(addprefix $(BUILD_DIR)/,$(OBJS))
-
-# It is important our local include is first.
-# This should be searched first.
-INCLUDE_PATHS	:=$(INCLUDE_DIR) $(SRC_DIR) $(INSTALL_DIR)/include
-INCLUDE_FLAGS	:=$(addprefix -I,$(INCLUDE_PATHS))
 
 TEST_HEADERS	:=$(wildcard $(TEST_DIR)/*.h)
 TEST_OBJS		:=$(patsubst %.c,%.o,$(TEST_SRCS))
 FULL_TEST_OBJS	:=$(addprefix $(BUILD_TEST_DIR)/,$(TEST_OBJS))
+
+# Headers accessible within the include directory.
+# Only really used for clangd generation.
+INCLUDE_INCLUDE_PATHS :=$(INCLUDE_DIR) $(INSTALL_DIR)/include
+INCLUDE_INCLUDE_FLAGS :=$(addprefix -I,$(INCLUDE_INCLUDE_PATHS))
+
+# It is important our local include is first.
+# This should be searched first.
+SRC_INCLUDE_PATHS	:=$(INCLUDE_DIR) $(SRC_DIR) $(INSTALL_DIR)/include
+SRC_INCLUDE_FLAGS	:=$(addprefix -I,$(SRC_INCLUDE_PATHS))
 
 TEST_INCLUDE_PATHS :=$(INCLUDE_DIR) $(TEST_DIR) $(INSTALL_DIR)/include
 TEST_INCLUDE_FLAGS :=$(addprefix -I,$(TEST_INCLUDE_PATHS))
@@ -60,7 +65,7 @@ TEST_INCLUDE_FLAGS :=$(addprefix -I,$(TEST_INCLUDE_PATHS))
 DEPS_PATHS 	:=$(BUILD_DIR) $(INSTALL_DIR)
 DEPS_FLAGS	:=$(addprefix -L,$(DEPS_PATHS)) $(foreach dep,$(DEPS),-l$(dep))
 
-.PHONY: all lib test uninstall install clean clangd
+.PHONY: all lib test uninstall install clean clangd clean_clangd
 
 all: lib test
 
@@ -79,17 +84,24 @@ install: uninstall $(LIB_FILE)
 clean:
 	rm -rf $(BUILD_DIR)
 
-# Maybe edit how this clangd thing works??
 clangd:
-	echo "CompileFlags:" > .clangd
-	echo "  Add:" >> .clangd
-	$(foreach flag,$(INCLUDE_FLAGS),echo "    - $(flag)" >> .clangd;) 
+	cp $(PROJ_DIR)/clangd_template.yml $(INCLUDE_DIR)/.clangd
+	$(foreach flag,$(INCLUDE_INCLUDE_FLAGS),echo "    - $(flag)" >> $(INCLUDE_DIR)/.clangd;) 
+	cp $(PROJ_DIR)/clangd_template.yml $(SRC_DIR)/.clangd
+	$(foreach flag,$(SRC_INCLUDE_FLAGS),echo "    - $(flag)" >> $(SRC_DIR)/.clangd;) 
+	cp $(PROJ_DIR)/clangd_template.yml $(TEST_DIR)/.clangd
+	$(foreach flag,$(TEST_INCLUDE_FLAGS),echo "    - $(flag)" >> $(TEST_DIR)/.clangd;) 
+
+clean_clangd:
+	rm -f $(INCLUDE_DIR)/.clangd
+	rm -f $(SRC_DIR)/.clangd
+	rm -f $(TEST_DIR)/.clangd
 
 $(BUILD_DIR) $(BUILD_TEST_DIR):
 	mkdir -p $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS) | $(BUILD_DIR)
-	$(CC) -c $(FLAGS) $(INCLUDE_FLAGS) $< -o $@
+	$(CC) -c $(FLAGS) $(SRC_INCLUDE_FLAGS) $< -o $@
 
 # Remember, the lib file doesn't actually care about dependencies.
 $(LIB_FILE): $(FULL_OBJS)

@@ -9,6 +9,7 @@
 #include "map.h"
 #include "list.h"
 #include "heap.h"
+#include "_string.h"
 
 void setUp(void) {
     reset_malloc_count();
@@ -24,5 +25,6 @@ int main(void) {
     list_tests();
     map_tests();
     heap_tests();
+    string_tests(); 
     return UNITY_END();
 }

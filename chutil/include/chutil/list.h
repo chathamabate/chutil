@@ -2,8 +2,8 @@
 #ifndef CHUTIL_LIST_H
 #define CHUTIL_LIST_H
 
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 
 // Abstract List Types. (Really just reinventing C++ here.)
 
