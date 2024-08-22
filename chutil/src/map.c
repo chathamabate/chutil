@@ -48,7 +48,7 @@ static void hm_check_resize(hash_map_t *hm) {
 }
 
 hash_map_t *new_hash_map(size_t ks, size_t vs, 
-        hash_map_hash_ft hf, hash_map_eq_ft ef) {
+        hash_map_hash_ft hf, hash_map_key_eq_ft ef) {
     if (ks == 0 || hf == NULL || ef == NULL) {
         return NULL;
     }
@@ -214,6 +214,33 @@ bool hm_remove(hash_map_t *hm, const void *key) {
     safe_free(iter);
     
     hm->num_keys--;
+
+    return true;
+}
+
+bool hm_equals(hash_map_t *hm1, hash_map_t *hm2, hash_map_val_eq_ft val_eq) {
+    if (hm_num_keys(hm1) != hm_num_keys(hm2)) {
+        return false;
+    }
+
+    key_val_pair_t hm1_kvp;
+    const void *hm1_key;
+    const void *hm1_val;
+
+    const void *hm2_val;
+    
+    hm_reset_iterator(hm1);
+    while ((hm1_kvp = hm_next_kvp(hm1)) != HASH_MAP_EXHAUSTED) {
+        hm1_key = kvp_key(hm1, hm1_kvp); 
+        hm1_val = kvp_val(hm1, hm1_kvp);
+
+        hm2_val = hm_get(hm2, hm1_key);  
+
+        if (!hm2_val || !val_eq(hm1_val, hm2_val)) {
+            return false;
+        }
+
+    }
 
     return true;
 }

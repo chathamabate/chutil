@@ -20,7 +20,6 @@ typedef void (*list_poll_ft)(void *, void *);
 typedef void (*list_reset_iterator_ft)(void *);
 typedef void *(*list_next_ft)(void *);
 
-
 typedef struct _list_impl_t {
     list_constructor_ft constructor;
     list_destructor_ft  destructor;

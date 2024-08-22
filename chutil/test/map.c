@@ -16,14 +16,14 @@ static uint32_t u64_hash_f(const uint64_t *k) {
 
 static void test_hm_construct_and_destruct(void) {
     hash_map_t *hm = new_hash_map(sizeof(uint64_t), sizeof(uint64_t),
-            (hash_map_hash_ft)u64_hash_f, (hash_map_eq_ft)u64_eq_f);
+            (hash_map_hash_ft)u64_hash_f, (hash_map_key_eq_ft)u64_eq_f);
     TEST_ASSERT_NOT_NULL(hm);
     delete_hash_map(hm);
 }
 
 static void test_hm_put_and_get(void) {
     hash_map_t *hm = new_hash_map(sizeof(uint64_t), sizeof(uint64_t),
-            (hash_map_hash_ft)u64_hash_f, (hash_map_eq_ft)u64_eq_f);
+            (hash_map_hash_ft)u64_hash_f, (hash_map_key_eq_ft)u64_eq_f);
 
     const uint64_t NUM_KEYS = 80;
     uint64_t key, in_val, out_val;
@@ -46,7 +46,7 @@ static void test_hm_put_and_get(void) {
 
 static void test_hm_put_and_remove(void) {
     hash_map_t *hm = new_hash_map(sizeof(uint64_t), sizeof(uint64_t),
-            (hash_map_hash_ft)u64_hash_f, (hash_map_eq_ft)u64_eq_f);
+            (hash_map_hash_ft)u64_hash_f, (hash_map_key_eq_ft)u64_eq_f);
 
     const uint64_t NUM_KEYS = 50;
     uint64_t key, in_val, out_val;
@@ -90,7 +90,7 @@ uint32_t tct_hash_f(const test_coord_t *t) {
 
 static void test_hm_put_big_key(void) {
     hash_map_t *hm = new_hash_map(sizeof(test_coord_t), sizeof(uint64_t), 
-            (hash_map_hash_ft)tct_hash_f, (hash_map_eq_ft)tct_eq_f);
+            (hash_map_hash_ft)tct_hash_f, (hash_map_key_eq_ft)tct_eq_f);
 
     // Here we are just testing using a larger key size.
     // Value size shouldn't really change anything special.
@@ -126,7 +126,7 @@ static uint32_t u8_hash_f(const uint8_t *k) {
 
 static void test_hm_iterator(void) {
     hash_map_t *hm = new_hash_map(sizeof(uint8_t), sizeof(uint32_t),
-        (hash_map_hash_ft)u8_hash_f, (hash_map_eq_ft)u8_eq_f);
+        (hash_map_hash_ft)u8_hash_f, (hash_map_key_eq_ft)u8_eq_f);
 
     // Confirm that all keys are found, and that their values match up. 
 
@@ -166,11 +166,73 @@ static void test_hm_iterator(void) {
     delete_hash_map(hm);
 }
 
+static bool u32_eq_f(const uint32_t *n1, const uint32_t *n2) {
+    return *n1 == *n2;
+}
+
+static void test_hm_equals_simple(void) {
+    hash_map_t *hm1 = new_hash_map(sizeof(uint8_t), sizeof(uint32_t),
+        (hash_map_hash_ft)u8_hash_f, (hash_map_key_eq_ft)u8_eq_f);
+    hash_map_t *hm2 = new_hash_map(sizeof(uint8_t), sizeof(uint32_t),
+        (hash_map_hash_ft)u8_hash_f, (hash_map_key_eq_ft)u8_eq_f);
+
+    TEST_ASSERT_TRUE(hm_equals(hm1, hm2, (hash_map_val_eq_ft)u32_eq_f));
+
+    uint8_t k;
+    uint32_t v;
+
+    k = 3; v = 32;
+    hm_put(hm1, &k, &v);
+    TEST_ASSERT_FALSE(hm_equals(hm1, hm2, (hash_map_val_eq_ft)u32_eq_f));
+
+    hm_put(hm2, &k, &v);
+    TEST_ASSERT_TRUE(hm_equals(hm1, hm2, (hash_map_val_eq_ft)u32_eq_f));
+
+    v = 33;
+    hm_put(hm2, &k, &v);
+    TEST_ASSERT_FALSE(hm_equals(hm1, hm2, (hash_map_val_eq_ft)u32_eq_f));
+
+    delete_hash_map(hm1);
+    delete_hash_map(hm2);
+}
+
+static void test_hm_equals_big(void) {
+    hash_map_t *hm1 = new_hash_map(sizeof(uint8_t), sizeof(uint32_t),
+        (hash_map_hash_ft)u8_hash_f, (hash_map_key_eq_ft)u8_eq_f);
+    hash_map_t *hm2 = new_hash_map(sizeof(uint8_t), sizeof(uint32_t),
+        (hash_map_hash_ft)u8_hash_f, (hash_map_key_eq_ft)u8_eq_f);
+
+    uint8_t k;
+    uint32_t v;
+
+    for (uint8_t i = 0; i < 100; i++) {
+        v = i * 24;
+        hm_put(hm1, &k, &v);
+        hm_put(hm2, &k, &v);
+    }
+
+    TEST_ASSERT_TRUE(hm_equals(hm1, hm2, (hash_map_val_eq_ft)u32_eq_f));
+
+    k = 32;
+    v = 1;
+    hm_put(hm1, &k, &v);
+    TEST_ASSERT_FALSE(hm_equals(hm1, hm2, (hash_map_val_eq_ft)u32_eq_f));
+
+    hm_remove(hm1, &k);
+    hm_remove(hm2, &k);
+    TEST_ASSERT_TRUE(hm_equals(hm1, hm2, (hash_map_val_eq_ft)u32_eq_f));
+    
+    delete_hash_map(hm1);
+    delete_hash_map(hm2);
+}
+
 void map_tests(void) {
     RUN_TEST(test_hm_construct_and_destruct); 
     RUN_TEST(test_hm_put_and_get);
     RUN_TEST(test_hm_put_and_remove);
     RUN_TEST(test_hm_put_big_key);
     RUN_TEST(test_hm_iterator);
+    RUN_TEST(test_hm_equals_simple);
+    RUN_TEST(test_hm_equals_big);
 }
 
