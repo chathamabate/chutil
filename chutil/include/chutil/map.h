@@ -9,7 +9,8 @@
 
 // Only hashmap implementation for now!
 
-typedef bool (*hash_map_eq_ft)(const void *, const void *);
+typedef bool (*hash_map_key_eq_ft)(const void *, const void *);
+typedef bool (*hash_map_val_eq_ft)(const void *, const void *);
 typedef uint32_t (*hash_map_hash_ft)(const void *);
 
 typedef void *key_val_pair_t;
@@ -26,7 +27,7 @@ typedef struct _hash_map_t {
     size_t value_size;
 
     hash_map_hash_ft hash_func;
-    hash_map_eq_ft eq_func;
+    hash_map_key_eq_ft eq_func;
 
     size_t num_keys;
 
@@ -39,7 +40,7 @@ typedef struct _hash_map_t {
 } hash_map_t;
 
 hash_map_t *new_hash_map(size_t ks, size_t vs, 
-        hash_map_hash_ft hf, hash_map_eq_ft ef);
+        hash_map_hash_ft hf, hash_map_key_eq_ft ef);
 
 void delete_hash_map(hash_map_t *hm);
 
@@ -89,5 +90,9 @@ static inline bool hm_contains(hash_map_t *hm, const void *key) {
 
     return false;
 }
+
+// I decided not to make a helper functions class for maps
+// since there is only one map implementation.
+bool hm_equals(hash_map_t *hm1, hash_map_t *hm2, hash_map_val_eq_ft val_eq);
 
 #endif
