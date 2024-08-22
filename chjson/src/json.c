@@ -13,7 +13,7 @@ static json_t *NULL_JSON = &_NULL_JSON;
 
 json_t *new_json_object(void) {
     hash_map_t *hm = new_hash_map(sizeof(string_t *), sizeof(json_t *),
-           (hash_map_hash_ft)s_indirect_hash, (hash_map_eq_ft)s_indirect_equals);
+           (hash_map_hash_ft)s_indirect_hash, (hash_map_key_eq_ft)s_indirect_equals);
 
     json_t *json = safe_malloc(sizeof(json_t));
 

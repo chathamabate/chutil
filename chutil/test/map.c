@@ -16,14 +16,14 @@ static uint32_t u64_hash_f(const uint64_t *k) {
 
 static void test_hm_construct_and_destruct(void) {
     hash_map_t *hm = new_hash_map(sizeof(uint64_t), sizeof(uint64_t),
-            (hash_map_hash_ft)u64_hash_f, (hash_map_eq_ft)u64_eq_f);
+            (hash_map_hash_ft)u64_hash_f, (hash_map_key_eq_ft)u64_eq_f);
     TEST_ASSERT_NOT_NULL(hm);
     delete_hash_map(hm);
 }
 
 static void test_hm_put_and_get(void) {
     hash_map_t *hm = new_hash_map(sizeof(uint64_t), sizeof(uint64_t),
-            (hash_map_hash_ft)u64_hash_f, (hash_map_eq_ft)u64_eq_f);
+            (hash_map_hash_ft)u64_hash_f, (hash_map_key_eq_ft)u64_eq_f);
 
     const uint64_t NUM_KEYS = 80;
     uint64_t key, in_val, out_val;
@@ -46,7 +46,7 @@ static void test_hm_put_and_get(void) {
 
 static void test_hm_put_and_remove(void) {
     hash_map_t *hm = new_hash_map(sizeof(uint64_t), sizeof(uint64_t),
-            (hash_map_hash_ft)u64_hash_f, (hash_map_eq_ft)u64_eq_f);
+            (hash_map_hash_ft)u64_hash_f, (hash_map_key_eq_ft)u64_eq_f);
 
     const uint64_t NUM_KEYS = 50;
     uint64_t key, in_val, out_val;
@@ -90,7 +90,7 @@ uint32_t tct_hash_f(const test_coord_t *t) {
 
 static void test_hm_put_big_key(void) {
     hash_map_t *hm = new_hash_map(sizeof(test_coord_t), sizeof(uint64_t), 
-            (hash_map_hash_ft)tct_hash_f, (hash_map_eq_ft)tct_eq_f);
+            (hash_map_hash_ft)tct_hash_f, (hash_map_key_eq_ft)tct_eq_f);
 
     // Here we are just testing using a larger key size.
     // Value size shouldn't really change anything special.
@@ -126,7 +126,7 @@ static uint32_t u8_hash_f(const uint8_t *k) {
 
 static void test_hm_iterator(void) {
     hash_map_t *hm = new_hash_map(sizeof(uint8_t), sizeof(uint32_t),
-        (hash_map_hash_ft)u8_hash_f, (hash_map_eq_ft)u8_eq_f);
+        (hash_map_hash_ft)u8_hash_f, (hash_map_key_eq_ft)u8_eq_f);
 
     // Confirm that all keys are found, and that their values match up. 
 
