@@ -10,6 +10,7 @@
 #include "list.h"
 #include "heap.h"
 #include "_string.h"
+#include "list_helpers.h"
 
 void setUp(void) {
     reset_malloc_count();
@@ -23,6 +24,7 @@ void tearDown(void) {
 int main(void) {
     UNITY_BEGIN();
     list_tests();
+    list_helpers_tests();
     map_tests();
     heap_tests();
     string_tests(); 
