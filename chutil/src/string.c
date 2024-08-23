@@ -165,6 +165,8 @@ static void s_prepare_modify(string_t *s, size_t min_cap) {
         // string literal, usage of the min_cap as is will be fine.
         ss = new_shared_string(s->sl->literal, len, min_cap);
         s_release_shared(s);
+
+        s->from_literal = false;
         s->ss = ss;
 
         return;
@@ -226,4 +228,14 @@ void s_set_char(string_t *s, size_t i, char c) {
     size_t len = s_len(s);   
     s_prepare_modify(s, len + 1);
     s->ss->buf[i] = c;
+}
+
+void s_print_debug(string_t *s) {
+    if (s->from_literal) {
+        printf("Literal @ %p (RC = %zu, Len = %zu): %s\n", 
+                (void *)(s->sl), s->sl->ref_count, s->sl->len, s->sl->literal);
+    } else {
+        printf("Shared @ %p (RC = %zu, Len = %zu, Cap = %zu): %s\n", 
+                (void *)(s->ss), s->ss->ref_count, s->ss->len, s->ss->cap, s->ss->buf);
+    }
 }

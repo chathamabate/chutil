@@ -79,4 +79,6 @@ static inline char s_get_char(const string_t *s, size_t i) {
     return s_get_cstr(s)[i];
 }
 
+void s_print_debug(string_t *s);
+
 #endif
