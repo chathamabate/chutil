@@ -31,7 +31,7 @@ json_t *_new_json_object_from_kvps(int dummy, ...) {
     va_start(arg_ptr, dummy);
 
     while (true) {
-        const char *key = va_arg(arg_ptr, const char *);
+        string_t *key = va_arg(arg_ptr, string_t *);
         if (!key) {
             break;
         }
@@ -41,8 +41,7 @@ json_t *_new_json_object_from_kvps(int dummy, ...) {
             break;
         }
 
-        string_t *key_string = new_string_from_cstr(key);
-        hm_put(hm, &key_string, &val);
+        hm_put(hm, &key, &val);
     }
 
     va_end(arg_ptr);
@@ -80,12 +79,10 @@ json_t *_new_json_list_from_eles(int dummy, ...) {
 }
 
 // NULL will result in an empty json string.
-json_t *new_json_string(const char *s) {
-    string_t *st = s ? new_string_from_cstr(s) : new_string();
-
+json_t *new_json_string(string_t *s) {
     json_t *json = safe_malloc(sizeof(json_t));
     json->type = CHJSON_STRING;
-    json->string_ptr = st;
+    json->string_ptr = s;
 
     return json;
 }

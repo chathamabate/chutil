@@ -45,7 +45,7 @@ json_t *new_json_object(void);
 // This below function and macro expect a non zero number of alternating
 // keys and values.
 //
-// Each key should be a const char *, the given string will be entirely copied into a new string_t.
+// Each key should be a string_t * which will be owned by the resulting json object.
 // Each value should be a json_t * which will be owned by the resulting json object.
 
 json_t *_new_json_object_from_kvps(int dummy, ...);
@@ -55,8 +55,8 @@ json_t *new_json_list(void);
 json_t *_new_json_list_from_eles(int dummy, ...);
 #define new_json_list_from_eles(...) _new_json_list_from_eles(0, __VA_ARGS__, NULL)
 
-// NULL will result in an empty json string.
-json_t *new_json_string(const char *s);
+// The new json object will own the given string.
+json_t *new_json_string(string_t *s);
 
 json_t *new_json_number(double n);
 json_t *new_json_boolean(bool b);

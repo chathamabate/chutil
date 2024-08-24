@@ -206,8 +206,15 @@ static void test_hm_equals_big(void) {
     uint32_t v;
 
     for (uint8_t i = 0; i < 100; i++) {
+        k = i;
         v = i * 24;
         hm_put(hm1, &k, &v);
+    }
+
+    for (uint8_t i = 0; i < 100; i++) {
+        uint8_t si = 99 - i;
+        k = si;
+        v = si * 24;
         hm_put(hm2, &k, &v);
     }
 

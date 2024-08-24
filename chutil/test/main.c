@@ -11,6 +11,7 @@
 #include "heap.h"
 #include "_string.h"
 #include "list_helpers.h"
+#include "stream.h"
 
 void setUp(void) {
     reset_malloc_count();
@@ -28,5 +29,6 @@ int main(void) {
     map_tests();
     heap_tests();
     string_tests(); 
+    stream_tests();
     return UNITY_END();
 }
