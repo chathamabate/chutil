@@ -19,11 +19,11 @@ static void test_string_in_stream(void) {
 
     for (size_t i = 0; i < len; i++) {
         state = is_peek_char(is, &out);
-        TEST_ASSERT_TRUE(state == STREAM_SUCCES);
+        TEST_ASSERT_TRUE(state == STREAM_SUCCESS);
         TEST_ASSERT_EQUAL_CHAR(s[i], out);
 
         state = is_next_char(is, &out);
-        TEST_ASSERT_TRUE(state == STREAM_SUCCES);
+        TEST_ASSERT_TRUE(state == STREAM_SUCCESS);
         TEST_ASSERT_EQUAL_CHAR(s[i], out);
     }
 
@@ -35,14 +35,14 @@ static void test_string_in_stream(void) {
 
 // Not going to run this everytime.
 // Will just point to a absolute path on my machine.
-#define TEST_FILE_PATH "/Users/chathamabate/Desktop/Git-Workspaces/chlibs/chutil/test/dummy.txt"
+#define TEST_READ_FILE_PATH "/Users/chathamabate/Desktop/Git-Workspaces/chlibs/chutil/test/read.txt"
 static void test_file_in_stream(void) {
     in_stream_t *is; 
 
     is = new_in_stream_from_file("NOT A FILE");
     TEST_ASSERT_NULL(is);
 
-    is = new_in_stream_from_file(TEST_FILE_PATH);
+    is = new_in_stream_from_file(TEST_READ_FILE_PATH);
     TEST_ASSERT_NOT_NULL(is);
 
     char out1, out2;
@@ -53,7 +53,7 @@ static void test_file_in_stream(void) {
         state2 = is_next_char(is, &out2);
 
         TEST_ASSERT_TRUE(state1 == state2);
-        if (state1 != STREAM_SUCCES) {
+        if (state1 != STREAM_SUCCESS) {
             break;
         }
         
@@ -64,11 +64,41 @@ static void test_file_in_stream(void) {
     delete_in_stream(is);
 }
 
+static void test_string_out_stream(void) {
+    const char *s = "Hello World";
+
+    string_t *builder = new_string();
+    out_stream_t *os = new_out_stream_to_string(builder);
+
+    TEST_ASSERT_NOT_NULL(os);
+    stream_state_t state = os_puts(os, s);
+    TEST_ASSERT_TRUE(state == STREAM_SUCCESS);
+    delete_out_stream(os);
+
+    TEST_ASSERT_EQUAL_STRING(s, s_get_cstr(builder));
+
+    delete_string(builder);
+}
+
+#define TEST_WRITE_FILE_PATH "/Users/chathamabate/Desktop/Git-Workspaces/chlibs/chutil/test/write.txt"
+static void test_file_out_stream(void) {
+    out_stream_t *os = new_out_stream_to_file(TEST_WRITE_FILE_PATH, "w");  
+
+    stream_state_t state = os_puts(os, "Hello World");
+    TEST_ASSERT_TRUE(state == STREAM_SUCCESS);
+
+    delete_out_stream(os);
+}
+
 void stream_tests(void) {
     RUN_TEST(test_string_in_stream);
+    RUN_TEST(test_string_out_stream);
 
     (void)test_file_in_stream;
     //RUN_TEST(test_file_in_stream);
+
+    (void)test_file_out_stream;
+    //RUN_TEST(test_file_out_stream);
 }
 
 

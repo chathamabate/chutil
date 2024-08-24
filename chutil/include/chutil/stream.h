@@ -5,19 +5,23 @@
 
 #include <stdio.h>
 #include "chutil/string.h"
+#include "chutil/debug.h"
 
 typedef enum _stream_state_t {
-    STREAM_SUCCES,
+    STREAM_SUCCESS,
     STREAM_EMPTY,
     STREAM_ERROR
 
     // Maybe add more to these someday.
 } stream_state_t;
 
+typedef void (*stream_destructor_ft)(void *);
+
+// input stream.....
+
 // The given character pointer can be NULL.
 typedef stream_state_t (*in_stream_next_char_ft)(void *, char *);
 typedef stream_state_t (*in_stream_peek_char_ft)(void *, char *);
-typedef void (*stream_destructor_ft)(void *);
 
 typedef struct _in_stream_impl_t {
     in_stream_peek_char_ft peek_char;
@@ -66,5 +70,54 @@ file_in_stream_t *new_file_in_stream(const char *fn);
 void delete_file_in_stream(file_in_stream_t *fis);
 stream_state_t fis_peek_char(file_in_stream_t *fis, char *out);
 stream_state_t fis_next_char(file_in_stream_t *fis, char *out);
+
+// Now for output stream.....
+
+typedef stream_state_t (*out_stream_putc_ft)(void *, char c);
+
+typedef struct _out_stream_impl_t {
+    out_stream_putc_ft putc;
+    stream_destructor_ft destructor;
+} out_stream_impl_t;
+
+typedef struct _out_stream_t {
+    void *data;
+    const out_stream_impl_t *impl;
+} out_stream_t;
+
+// The "builder' will NOT be owned by the created stream.
+// It will simply be appended to.
+out_stream_t *new_out_stream_to_string(string_t *builder);
+
+// Returns NULL on error.
+// attrs should be how the file will be openned.
+// Probably "w" or "a". (i.e. do we want to create a new file or add to an 
+// existing one)
+out_stream_t *new_out_stream_to_file(const char *fn, const char *attrs);
+void delete_out_stream(out_stream_t *os);
+
+static inline stream_state_t os_putc(out_stream_t *os, char c) {
+    return os->impl->putc(os->data, c);
+}
+
+stream_state_t os_puts(out_stream_t *os, const char *s);
+
+typedef struct _string_out_stream_t {
+    string_t *builder;
+} string_out_stream_t;
+
+string_out_stream_t *new_string_out_stream(string_t *builder);
+static inline void delete_string_out_stream(string_out_stream_t *sos) {
+    safe_free(sos);
+}
+stream_state_t sos_putc(string_out_stream_t *sos, char c);
+
+typedef struct _file_out_stream_t {
+    FILE *fp;
+} file_out_stream_t;
+
+file_out_stream_t *new_file_out_stream(const char *fn, const char *mode);
+void delete_file_out_stream(file_out_stream_t *fos);
+stream_state_t fos_putc(file_out_stream_t *fos, char c);
 
 #endif
