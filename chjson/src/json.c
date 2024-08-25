@@ -130,6 +130,7 @@ void delete_json(json_t *json) {
             delete_string(*key_ptr);
             delete_json(*val_ptr);
         }
+        delete_hash_map(hm);
         break;
 
     case CHJSON_LIST:
@@ -138,6 +139,7 @@ void delete_json(json_t *json) {
         while ((val_ptr = (json_t **)l_next(l))) {
             delete_json(*val_ptr);
         }
+        delete_list(l);
         break;
 
     case CHJSON_STRING:
@@ -194,126 +196,4 @@ bool *json_as_bool(json_t *json) {
     }
 
     return NULL;
-}
-
-
-// Just going to use 2 spaces as a tab for now!
-#define CHJSON_STRING_TAB "  "
-static inline void tab_out(string_t *out, size_t tabs) {
-    for (size_t i = 0; i < tabs; i++) {
-        s_append_cstr(out, CHJSON_STRING_TAB);
-    }
-}
-
-// If spaced is false, tabs is ignored.
-#define CHJSON_NUMBER_MAX_STR_WIDTH 26
-static void json_to_string_helper(json_t *json, string_t *out, 
-        bool spaced, size_t tabs) {
-    hash_map_t *hm;
-    list_t *l;
-    bool first;
-    char num_buf[CHJSON_NUMBER_MAX_STR_WIDTH];
-
-    switch (json->type) {
-    case CHJSON_OBJECT: 
-        hm = json->object_ptr;
-
-        s_append_cstr(out, "{");
-    
-        // We don't append a comma on the first iteration!
-        first = true;
-
-        key_val_pair_t kvp;
-        hm_reset_iterator(hm);
-        while ((kvp = hm_next_kvp(hm)) != HASH_MAP_EXHAUSTED) {
-            string_t *key = *(string_t **)kvp_key(hm, kvp);
-            json_t *val = *(json_t **)kvp_val(hm, kvp);
-
-            if (!first) {
-                s_append_cstr(out, ",");
-            } else {
-                first = false;
-            }
-
-            if (spaced) {
-                s_append_cstr(out, "\n");
-                tab_out(out, tabs + 1);
-            }
-
-            s_append_cstr(out, "\"");
-            s_append_string(out, key);
-            s_append_cstr(out, "\":");
-
-            if (spaced) {
-                s_append_cstr(out, " ");
-            }
-            
-            json_to_string_helper(val, out, spaced, tabs + 1);
-        }
-
-        if (spaced) {
-            s_append_cstr(out, "\n");
-            tab_out(out, tabs);
-        }
-        s_append_cstr(out, "}");
-    
-        break;
-
-    case CHJSON_LIST:
-        l = json->list_ptr;
-
-        s_append_cstr(out, "[");
-
-        first = true;
-        json_t **ele_ptr;
-        l_reset_iterator(l);
-        while ((ele_ptr = l_next(l))) {
-            if (!first) {
-                s_append_cstr(out, ",");
-            } else {
-                first = false;
-            }
-
-            if (spaced) {
-                s_append_cstr(out, "\n");
-                tab_out(out, tabs + 1);
-            }
-
-            json_to_string_helper(*ele_ptr, out, spaced, tabs + 1);
-        }
-        
-        if (spaced) {
-            s_append_cstr(out, "\n");
-            tab_out(out, tabs);
-        }
-        s_append_cstr(out, "]");
-        break;
-
-    case CHJSON_STRING:
-        s_append_cstr(out, "\"");
-        s_append_string(out, json->string_ptr);
-        s_append_cstr(out, "\"");
-        break;
-
-    case CHJSON_NUMBER:
-        snprintf(num_buf, CHJSON_NUMBER_MAX_STR_WIDTH, "%.15g", json->number_val);
-        s_append_cstr(out, num_buf);
-        break;
-
-    case CHJSON_BOOLEAN:
-        s_append_cstr(out, json->bool_val ? "true" : "false");
-        break;
-
-    case CHJSON_NULL:
-        s_append_cstr(out, "null");
-        break;
-    }
-}
-
-void json_to_string_spaced(json_t *json, string_t *out) {
-    json_to_string_helper(json, out, true, 0);
-}
-
-void json_to_string(json_t *json, string_t *out) {
-    json_to_string_helper(json, out, false, 0);
 }

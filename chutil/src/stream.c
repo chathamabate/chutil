@@ -66,11 +66,7 @@ stream_state_t sis_peek_char(string_in_stream_t *sis, char *out) {
         *out = s_get_char(sis->s, sis->i);
     }
 
-<<<<<<< HEAD
-    return STREAM_SUCCES;
-=======
     return STREAM_SUCCESS;
->>>>>>> dev/json-continued
 }
 
 stream_state_t sis_next_char(string_in_stream_t *sis, char *out) {
@@ -84,11 +80,7 @@ stream_state_t sis_next_char(string_in_stream_t *sis, char *out) {
 
     sis->i++;
 
-<<<<<<< HEAD
-    return STREAM_SUCCES;
-=======
     return STREAM_SUCCESS;
->>>>>>> dev/json-continued
 }
 
 

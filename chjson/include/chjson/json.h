@@ -5,9 +5,9 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
-#include <chutil/map.h>
-#include <chutil/list.h>
-#include <chutil/string.h>
+#include "chutil/map.h"
+#include "chutil/list.h"
+#include "chutil/string.h"
 
 typedef enum _json_type_t {
     CHJSON_OBJECT,
@@ -93,10 +93,5 @@ list_t *json_as_list(json_t *json);
 string_t *json_as_string(json_t *json);
 double *json_as_number(json_t *json);
 bool *json_as_bool(json_t *json);
-
-// The given json in string form will be appended to
-// the given string out.
-void json_to_string_spaced(json_t *json, string_t *out);
-void json_to_string(json_t *json, string_t *out);
 
 #endif
