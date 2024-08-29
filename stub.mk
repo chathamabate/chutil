@@ -39,7 +39,8 @@ include $(PROJ_DIR)/vars.mk
 # Each library will be built entirely independently to its
 # dependencies. It will search for libraries in the install path.
 
-HEADERS		:=$(wildcard $(INCLUDE_DIR)/$(LIB_NAME)/*.h)
+HEADERS			:=$(wildcard $(INCLUDE_DIR)/$(LIB_NAME)/*.h)
+PRIVATE_HEADERS	:=$(wildcard $(SRC_DIR)/*.h)
 OBJS		:=$(patsubst %.c,%.o,$(SRCS))
 FULL_OBJS	:=$(addprefix $(BUILD_DIR)/,$(OBJS))
 
@@ -100,7 +101,7 @@ clean_clangd:
 $(BUILD_DIR) $(BUILD_TEST_DIR):
 	mkdir -p $@
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS) | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(PRIVATE_HEADERS) $(HEADERS) | $(BUILD_DIR)
 	$(CC) -c $(FLAGS) $(SRC_INCLUDE_FLAGS) $< -o $@
 
 # Remember, the lib file doesn't actually care about dependencies.

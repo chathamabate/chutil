@@ -5,8 +5,10 @@
 #include "chjson/json.h"
 #include "json_helper.h"
 #include "json.h"
+#include "parser.h"
 #include "unity/unity.h"
 #include "unity/unity_internals.h"
+
 
 void setUp(void) {
     reset_malloc_count();
@@ -20,5 +22,6 @@ int main(void) {
     UNITY_BEGIN();
     json_tests();
     json_helpers_tests();
+    parser_tests();
     return UNITY_END();
 }

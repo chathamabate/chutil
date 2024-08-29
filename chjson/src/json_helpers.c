@@ -27,7 +27,6 @@
 
 
 // If spaced is false, tabs is ignored.
-#define CHJSON_NUMBER_MAX_STR_WIDTH 26
 static stream_state_t json_to_stream_helper(json_t *json, out_stream_t *os, 
         bool spaced, size_t tabs) {
     hash_map_t *hm;
