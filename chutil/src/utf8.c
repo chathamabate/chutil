@@ -27,14 +27,6 @@ unicode_t unicode_from_cstr(const char *cstr) {
     return res;
 }
 
-#define TRY_CALL(stream_exp) \
-    do { \
-        stream_state_t __ss = stream_exp; \
-        if (__ss != STREAM_SUCCESS) { \
-            return __ss; \
-        } \
-    } while (0)
-
 stream_state_t unicode_to_utf8(out_stream_t *os, unicode_t uc) {
     uint8_t parts[4] = {
         (0x000F & uc),
@@ -44,24 +36,24 @@ stream_state_t unicode_to_utf8(out_stream_t *os, unicode_t uc) {
     };
 
     if (uc < 0x0080) {
-        TRY_CALL(os_putc(os, (char)(
+        TRY_STREAM_CALL(os_putc(os, (char)(
             (parts[1] << 4) | parts[0] // Inefficient, but true to the wiki
         )));
     } else if (uc < 0x0800) {
-        TRY_CALL(os_putc(os, (char)(
+        TRY_STREAM_CALL(os_putc(os, (char)(
             0xC0 | (parts[2] << 2) | (parts[1] >> 2)
         )));
-        TRY_CALL(os_putc(os, (char)(
+        TRY_STREAM_CALL(os_putc(os, (char)(
             0x80 | ((0x3 & parts[1]) << 4) | parts[0]
         )));
     } else {
-        TRY_CALL(os_putc(os, (char)(
+        TRY_STREAM_CALL(os_putc(os, (char)(
             0xE0 | parts[3]
         )));
-        TRY_CALL(os_putc(os, (char)(
+        TRY_STREAM_CALL(os_putc(os, (char)(
             0x80 | (parts[2] << 2) | (parts[1] >> 2)
         )));
-        TRY_CALL(os_putc(os, (char)(
+        TRY_STREAM_CALL(os_putc(os, (char)(
             0x80 | ((0x3 & parts[1]) << 4) | parts[0]
         )));
     }
@@ -74,7 +66,7 @@ stream_state_t unicode_from_utf8(in_stream_t *is, unicode_t *uc) {
     // Kinda a reverse of above.
     // bytes[0] will be the leading byte.
     uint8_t bytes[3];
-    TRY_CALL(is_next_char(is, (char *)(&(bytes[0]))));
+    TRY_STREAM_CALL(is_next_char(is, (char *)(&(bytes[0]))));
 
     // Kinda complex way to say starts with a 0.
     if (!((bytes[0] >> 7) ^ 0x0)) {
@@ -84,7 +76,7 @@ stream_state_t unicode_from_utf8(in_stream_t *is, unicode_t *uc) {
 
     // 2 character UTF-8 Case. (3 hex characters)
     if (!((bytes[0] >> 5) ^ 0x6)) {
-        TRY_CALL(is_next_char(is, (char *)(&(bytes[1]))));
+        TRY_STREAM_CALL(is_next_char(is, (char *)(&(bytes[1]))));
         if (((bytes[1] >> 6) ^ 0x2)) {
             *uc = (unicode_t)' ';
             return STREAM_SUCCESS;
@@ -97,8 +89,8 @@ stream_state_t unicode_from_utf8(in_stream_t *is, unicode_t *uc) {
     }
 
     if (!((bytes[0] >> 4) ^ 0xE)) {
-        TRY_CALL(is_next_char(is, (char *)(&(bytes[1]))));
-        TRY_CALL(is_next_char(is, (char *)(&(bytes[2]))));
+        TRY_STREAM_CALL(is_next_char(is, (char *)(&(bytes[1]))));
+        TRY_STREAM_CALL(is_next_char(is, (char *)(&(bytes[2]))));
 
         if (((bytes[1] >> 6) ^ 0x2) || ((bytes[2] >> 6) ^ 0x2)) {
             *uc = (unicode_t)' ';

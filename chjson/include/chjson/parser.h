@@ -9,6 +9,7 @@
 typedef enum _parser_state_t {
     PARSER_SUCCESS = 0,
     PARSER_INPUT_STREAM_ERROR,
+    PARSER_OUTPUT_STREAM_ERROR,
     PARSER_SYNTAX_ERROR
 } parser_state_t;
 

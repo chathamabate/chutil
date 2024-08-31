@@ -7,7 +7,8 @@
 
 #define CHJSON_NUMBER_MAX_STR_WIDTH 26
 
-// Returns STREAM_SUCCESS on success.
+// NOTE: Control characters will be switched to their 
+// escaped versions.
 stream_state_t json_to_stream(json_t *json, out_stream_t *os, bool spaced);
 
 string_t *json_to_string(json_t *json, bool spaced);

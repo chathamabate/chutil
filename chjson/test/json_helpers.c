@@ -2,6 +2,7 @@
 #include "chjson/json.h"
 #include "chjson/json_helpers.h"
 
+#include "chutil/string.h"
 #include "json_helper.h"
 
 #include "unity/unity.h"
@@ -20,6 +21,25 @@ static void test_json_to_string(void) {
     string_t *s = json_to_string(json, false);
 
     TEST_ASSERT_EQUAL_STRING("[1.2,\"Hello\",true,{},null,[1]]", s_get_cstr(s));
+    
+    delete_string(s);
+    delete_json(json);
+}
+
+static void test_json_escapes_to_string(void) {
+    json_t *json = new_json_list_from_eles(
+            new_json_string(new_string_from_literal("Hello \u00A9 \n\t\r")),
+            new_json_string(new_string_from_literal("\\\"\b\f"))
+    );
+
+    string_t *s = json_to_string(json, false);
+
+    const char *expected = "["
+        "\"Hello \u00A9 \\n\\t\\r\","
+        "\"\\\\\\\"\\b\\f\""
+    "]";
+
+    TEST_ASSERT_EQUAL_STRING(expected, s_get_cstr(s));
     
     delete_string(s);
     delete_json(json);
@@ -139,5 +159,6 @@ static void test_json_equals(void) {
 
 void json_helpers_tests(void) {
     RUN_TEST(test_json_to_string);
+    RUN_TEST(test_json_escapes_to_string);
     RUN_TEST(test_json_equals);
 }

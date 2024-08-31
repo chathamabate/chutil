@@ -7,6 +7,25 @@
 #include "chutil/string.h"
 #include "chutil/debug.h"
 
+// It's common to what to exit a function when a stream call
+// returns anything other than STREAM SUCCESS.
+// This is a helper macro for this.
+#define TRY_STREAM_CALL(expr) \
+    do { \
+        stream_state_t __s = expr; \
+        if (__s != STREAM_SUCCESS) { \
+            return __s; \
+        } \
+    } while (0)
+
+// Some other helper macros for writing out chararcters and 
+// strings to output streams.
+#define OS_PUTC(os, c) \
+    TRY_STREAM_CALL(os_putc(os, c))
+
+#define OS_PUTS(os, s) \
+    TRY_STREAM_CALL(os_puts(os, s))
+
 typedef enum _stream_state_t {
     STREAM_SUCCESS,
     STREAM_EMPTY,
@@ -34,7 +53,12 @@ typedef struct _in_stream_t {
     const in_stream_impl_t *impl;
 } in_stream_t;
 
-// NOTE: the create in_stream will own s!
+// NOTE: the created in_stream will own s!
+// I have thought about changing this so that the instream
+// doesn't own s, but I've decided against this.
+// s should not be able to change in anyway if it is part of an 
+// input stream.
+//
 // s will be deleted when destructing the in stream.
 in_stream_t *new_in_stream_from_string(string_t *s);
 

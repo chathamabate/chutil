@@ -4,27 +4,74 @@
 #include "chutil/map.h"
 #include "chutil/string.h"
 #include "chutil/list_helpers.h"
-
-// Just going to use 2 spaces as a tab for now!
-
-#define OS_PUTC(os, c) \
-    state = os_putc(os, c); \
-    if (state != STREAM_SUCCESS) { \
-        return state; \
-    }
-
-#define OS_PUTS(os, s) \
-    state = os_puts(os, s); \
-    if (state != STREAM_SUCCESS) { \
-        return state; \
-    }
+#include "chutil/stream.h"
 
 #define CHJSON_STRING_TAB "  "
 #define TAB_OUT(os, tabs) \
     for (size_t i = 0; i < tabs; i++) { \
-        OS_PUTS(os, CHJSON_STRING_TAB) \
+        OS_PUTS(os, CHJSON_STRING_TAB); \
     }
 
+// This function takes a C-string and outputs it to the given out stream.
+// Valid JSON control characters will be converted to their escaped versions.
+// InValid JSON control characters will be ignored.
+// Unicode character are NOT converted.. they'll stay in their utf-8 form.
+// Slashes also will NOT be converted.
+//
+// If there is an invalid sequence of unicode bytes, they are output as is for now.
+// In the future, I may want to factor them out.
+static stream_state_t escape_string_to_stream(const char *cstr, out_stream_t *os) {
+    // Escape character:
+    // \" \\ \/ \b \f \n \r \t 
+    
+    char c;
+    for (const char *iter = cstr; *iter != '\0'; iter++) {
+        c = *iter;
+        // Non Control Character Case!
+        if (c < 0 || 0x20 <= c)  {
+            if (c == '\"' || c == '\\') {
+                OS_PUTC(os, '\\');
+            }
+
+            OS_PUTC(os, c);
+            continue;
+        }
+
+        // Control Character Case!
+        switch (c) {
+        case '\b':
+            OS_PUTC(os, '\\');
+            OS_PUTC(os, 'b');
+            break;
+
+        case '\f':
+            OS_PUTC(os, '\\');
+            OS_PUTC(os, 'f');
+            break;
+
+        case '\n':
+            OS_PUTC(os, '\\');
+            OS_PUTC(os, 'n');
+            break;
+
+        case '\r':
+            OS_PUTC(os, '\\');
+            OS_PUTC(os, 'r');
+            break;
+
+        case '\t':
+            OS_PUTC(os, '\\');
+            OS_PUTC(os, 't');
+            break;
+
+        default:
+            // Do nothing!
+            break;
+        }
+    }
+
+    return STREAM_SUCCESS;
+}
 
 // If spaced is false, tabs is ignored.
 static stream_state_t json_to_stream_helper(json_t *json, out_stream_t *os, 
@@ -33,7 +80,6 @@ static stream_state_t json_to_stream_helper(json_t *json, out_stream_t *os,
     list_t *l;
     bool first;
     char num_buf[CHJSON_NUMBER_MAX_STR_WIDTH];
-    stream_state_t state;
 
     switch (json->type) {
     case CHJSON_OBJECT: 
@@ -112,7 +158,7 @@ static stream_state_t json_to_stream_helper(json_t *json, out_stream_t *os,
 
     case CHJSON_STRING:
         OS_PUTC(os, '\"');
-        OS_PUTS(os, s_get_cstr(json->string_ptr));
+        TRY_STREAM_CALL(escape_string_to_stream(s_get_cstr(json->string_ptr), os));
         OS_PUTC(os, '\"');
         break;
 

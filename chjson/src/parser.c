@@ -3,6 +3,7 @@
 #include "chjson/json.h"
 #include "chjson/json_helpers.h"
 #include "chutil/map.h"
+#include "chutil/utf8.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -132,19 +133,39 @@ static parser_state_t trim_ws(in_stream_t *is) {
 static parser_state_t expect_control_suffix(in_stream_t *is, string_t *builder) {
     stream_state_t ss;
     char c;
+    char hex_digits[4];
 
     ss = is_next_char(is, &c);
     ASSERT_NOT_EMPTY(ss);
 
     switch (c) {
     case '\\':
+        s_append_char(builder, '\\');
+        return PARSER_SUCCESS;
+
     case '/':
+        // slash is not a c control character.
+        s_append_char(builder, '/');
+        return PARSER_SUCCESS;
+
     case 'b':
+        s_append_char(builder, '\b');
+        return PARSER_SUCCESS;
+
     case 'f':
+        s_append_char(builder, '\f');
+        return PARSER_SUCCESS;
+
     case 'n':
+        s_append_char(builder, '\n');
+        return PARSER_SUCCESS;
+
     case 'r':
+        s_append_char(builder, '\r');
+        return PARSER_SUCCESS;
+
     case 't':
-        s_append_char(builder, c);
+        s_append_char(builder, '\t');
         return PARSER_SUCCESS;
 
     case 'u':
@@ -162,8 +183,22 @@ static parser_state_t expect_control_suffix(in_stream_t *is, string_t *builder) 
                 return PARSER_SYNTAX_ERROR;
             }
 
-            s_append_char(builder, c);
+            hex_digits[i] = c;
         }
+
+        unicode_t uc = unicode_from_cstr(hex_digits);
+
+        // Little inefficient here... alas.
+        out_stream_t *os = new_out_stream_to_string(builder);
+        stream_state_t ss = unicode_to_utf8(os, uc); 
+        delete_out_stream(os);
+
+        // Since we're outputing to a string, the output stream
+        // should never ever fail. This if statement isn't really needed.
+        if (ss != STREAM_SUCCESS) {
+            return PARSER_OUTPUT_STREAM_ERROR;
+        }
+
         return PARSER_SUCCESS;
 
     default:
@@ -196,13 +231,16 @@ static parser_state_t _string_from_in_stream_no_trim(in_stream_t *is, string_t *
             return PARSER_SUCCESS;
         }
 
-        s_append_char(builder, c);
-
+        // NOTE: when the string is converted to a json object.
+        // Escapced characters will be translated into their corresponding
+        // C control characters.
         if (c == '\\') {
             ps = expect_control_suffix(is, builder);
             if (ps != PARSER_SUCCESS) {
                 return ps;
             }
+        } else {
+            s_append_char(builder, c);
         }
     }
 }
@@ -504,5 +542,5 @@ static parser_state_t json_from_in_stream_no_trim(in_stream_t *is, json_t **dest
 
 parser_state_t json_from_in_stream(in_stream_t *is, json_t **dest) {
     TRIM_WS(is);
-    return json_string_from_in_stream_no_trim(is, dest);
+    return json_from_in_stream_no_trim(is, dest);
 }
