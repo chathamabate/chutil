@@ -7,7 +7,8 @@ SRCS		:= debug.c \
 			   map.c \
 			   heap.c \
 			   string.c \
-			   stream.c 
+			   stream.c \
+			   utf8.c
 
 TEST_SRCS   := main.c \
 			   list.c \
@@ -15,6 +16,7 @@ TEST_SRCS   := main.c \
 			   map.c \
 			   heap.c \
 			   string.c \
-			   stream.c
+			   stream.c \
+			   utf8.c
 
 include ../stub.mk
