@@ -6,6 +6,7 @@
 #include "unity/unity_internals.h"
 #include "unity/unity.h"
 
+
 static void test_s_append_char(void) {
     string_t *s = new_string();
     
@@ -31,7 +32,6 @@ static void test_s_append_string(void) {
     s_append_string(s, add_s);
 
     TEST_ASSERT_EQUAL_STRING("Hello, World!", s_get_cstr(s));
-
 
     delete_string(s);
     delete_string(add_s);
@@ -88,10 +88,80 @@ static void test_s_big(void) {
     delete_string(s2);
 }
 
+// Now I need to test this from literal stuff.
+
+static void test_s_from_literal_1(void) {
+    string_t *s1 = new_string_from_literal("Hello");
+    string_t *s2 = s_copy(s1);
+
+    // checking basic reference counting here.
+
+    delete_string(s1);
+    TEST_ASSERT_EQUAL_STRING("Hello", s_get_cstr(s2));
+    
+    delete_string(s2);
+}
+
+static void test_s_from_literal_2(void) {
+    string_t *s1 = new_string_from_literal("Hello");
+    string_t *s2 = s_copy(s1);
+
+    s_append_char(s2, '!');
+    TEST_ASSERT_EQUAL_STRING("Hello!", s_get_cstr(s2));
+    TEST_ASSERT_EQUAL_STRING("Hello", s_get_cstr(s1));
+
+    string_t *s3 = s_copy(s2);
+    s_append_cstr(s3, " Woo!");
+    TEST_ASSERT_EQUAL_STRING("Hello!", s_get_cstr(s2));
+    TEST_ASSERT_EQUAL_STRING("Hello! Woo!", s_get_cstr(s3));
+
+    s_set_char(s1, 0, 'p');
+    TEST_ASSERT_EQUAL_STRING("pello", s_get_cstr(s1));
+    
+    delete_string(s1);
+    delete_string(s2);
+    delete_string(s3);
+}
+
+static void test_s_from_literal_3(void) {
+    string_t *s1 = new_string_from_literal("Bob");
+    string_t *s2 = s_copy(s1);
+
+    s_set_char(s2, 0, 'M');
+    TEST_ASSERT_EQUAL_STRING("Mob", s_get_cstr(s2));
+
+    s_set_char(s2, 2, 'p');
+    TEST_ASSERT_EQUAL_STRING("Mop", s_get_cstr(s2));
+
+    s_append_cstr(s2, " was cool");
+    TEST_ASSERT_EQUAL_STRING("Mop was cool", s_get_cstr(s2));
+
+    s_append_char(s2, '!');
+    TEST_ASSERT_EQUAL_STRING("Mop was cool!", s_get_cstr(s2));
+
+    s_append_char(s2, '!');
+    TEST_ASSERT_EQUAL_STRING("Mop was cool!!", s_get_cstr(s2));
+
+    string_t *s3 = s_copy(s2);
+
+    s_set_char(s2, 0, 'B');
+    TEST_ASSERT_EQUAL_STRING("Bop was cool!!", s_get_cstr(s2));
+    TEST_ASSERT_EQUAL_STRING("Mop was cool!!", s_get_cstr(s3));
+
+    TEST_ASSERT_EQUAL_STRING("Bob", s_get_cstr(s1));
+
+    delete_string(s1);
+    delete_string(s2);
+    delete_string(s3);
+}
+
 void string_tests(void) {
     RUN_TEST(test_s_append_char);
     RUN_TEST(test_s_append_string);
     RUN_TEST(test_s_substring);
     RUN_TEST(test_s_big);
+    RUN_TEST(test_s_from_literal_1);
+    RUN_TEST(test_s_from_literal_2);
+    RUN_TEST(test_s_from_literal_3);
 }
 

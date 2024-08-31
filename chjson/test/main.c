@@ -1,18 +1,27 @@
 
 #include <stdio.h>
+#include "chjson/json_helpers.h"
 #include "chutil/string.h"
 #include "chjson/json.h"
+#include "json_helper.h"
+#include "json.h"
+#include "parser.h"
+#include "unity/unity.h"
+#include "unity/unity_internals.h"
+
+
+void setUp(void) {
+    reset_malloc_count();
+}
+
+void tearDown(void) {
+    TEST_ASSERT_EQUAL_UINT(0, get_malloc_count());
+}
 
 int main(void) {
-    json_t *json = new_json_list_from_eles(
-        new_json_object_from_kvps(
-            "Name", new_json_string("Bobby"),
-            "Age", new_json_number(32.4)
-        )
-    );
-
-    string_t *out = new_string();
-    json_to_string_spaced(json, out);
-
-    printf("%s\n", s_get_cstr(out));
+    UNITY_BEGIN();
+    json_tests();
+    json_helpers_tests();
+    parser_tests();
+    return UNITY_END();
 }
