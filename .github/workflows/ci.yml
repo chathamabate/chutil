@@ -16,10 +16,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Unity
-        uses: make install_unity
+        run: make install_unity
 
       - name: Build and Install chlibs
-        uses: make install
+        run: make install
 
       - name: Build and Run Tests
-        uses: make run_tests
+        run: make run_tests
