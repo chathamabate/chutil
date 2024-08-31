@@ -44,7 +44,6 @@ uninstall_unity:
 	rm -rf $(INSTALL_DIR)/include/unity
 	rm -f $(INSTALL_DIR)/libunity.a
 
-# Little redundant order only params, but whatevs.
 install_unity: uninstall_unity
 	# Clone repo and build static library.
 	git clone $(UNITY_REPO) $(UNITY_DIR)
