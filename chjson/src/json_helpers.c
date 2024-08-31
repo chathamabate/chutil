@@ -219,6 +219,9 @@ bool json_equals(json_t *json1, json_t *json2) {
     case CHJSON_NULL:
         return true;
     };
+
+    // Should never make it here.
+    return false;
 }
 
 json_t *json_lookup_key_cstr(json_t *json, const char *key_cstr) {

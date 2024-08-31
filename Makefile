@@ -30,6 +30,9 @@ install:
 	true $(foreach lib,$(LIBS),&& make -C $(PROJ_DIR)/$(lib) install_headers)
 	true $(foreach lib,$(LIBS),&& make -C $(PROJ_DIR)/$(lib) install_lib)
 
+clangd:
+	true $(foreach lib,$(LIBS),&& make -C $(PROJ_DIR)/$(lib) clangd)
+
 # Rules for helping to install unity!
 
 UNITY_REPO:=https://github.com/ThrowTheSwitch/Unity.git
@@ -45,8 +48,8 @@ uninstall_unity:
 install_unity: uninstall_unity
 	# Clone repo and build static library.
 	git clone $(UNITY_REPO) $(UNITY_DIR)
-	$(CC) -c $(UNITY_SRC_DIR)/unity.c -I$(UNITY_SRC_DIR) -o $(UNITY_SRC_DIR)/unity.o
 	cd $(UNITY_DIR) && git checkout $(UNITY_HASH)
+	$(CC) -c $(UNITY_SRC_DIR)/unity.c -I$(UNITY_SRC_DIR) -o $(UNITY_SRC_DIR)/unity.o
 	ar rcs $(UNITY_SRC_DIR)/libunity.a $(UNITY_SRC_DIR)/unity.o
 	# Copy headers and lib.
 	mkdir -p $(INSTALL_DIR)/include/unity
