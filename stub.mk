@@ -74,13 +74,21 @@ lib: $(LIB_FILE)
 
 test: $(BUILD_TEST_DIR)/test
 
-uninstall:
+uninstall_headers:
 	rm -rf $(INSTALL_DIR)/include/$(LIB_NAME)
+
+install_headers: uninstall_headers
+	cp -r $(INCLUDE_DIR)/$(LIB_NAME) $(INSTALL_DIR)/include
+
+uninstall_lib:
 	rm -f $(INSTALL_DIR)/$(LIB_FILE_NAME)
 
-install: uninstall $(LIB_FILE)
-	cp -r $(INCLUDE_DIR)/$(LIB_NAME) $(INSTALL_DIR)/include
+install_lib: uninstall_lib $(LIB_FILE)
 	cp $(LIB_FILE) $(INSTALL_DIR)
+
+uninstall: uninstall_lib uninstall_headers
+
+install: install_lib install_headers
 
 clean:
 	rm -rf $(BUILD_DIR)
