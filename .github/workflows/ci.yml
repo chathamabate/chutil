@@ -21,6 +21,9 @@ jobs:
       - name: Build and Install chlibs
         run: make install
 
-      - name: Build and Run Tests
+      - name: Build Tests
+        run: make test
+
+      - name: Run Tests
         run: make run_tests
 

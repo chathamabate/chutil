@@ -127,5 +127,5 @@ $(BUILD_TEST_DIR)/%.o: $(TEST_DIR)/%.c $(HEADERS) $(TEST_HEADERS) | $(BUILD_TEST
 
 # Always include unity!
 $(BUILD_TEST_DIR)/test: $(FULL_TEST_OBJS) $(LIB_FILE)
-	$(CC) $(DEPS_FLAGS) -lunity $^ -o $@
+	$(CC) $^ $(DEPS_FLAGS) -lunity -o $@
 
