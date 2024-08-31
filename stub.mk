@@ -19,7 +19,7 @@
 # Each library will have its own build folder.
 # Use the install target to copy build library and headers
 
-PROJ_DIR:=$(shell git rev-parse --show-toplevel)
+include ../vars.mk
 
 # I like absolute paths tbh.
 LIB_DIR		:=$(PROJ_DIR)/$(LIB_NAME)
@@ -33,8 +33,6 @@ BUILD_TEST_DIR	:=$(BUILD_DIR)/test
 
 LIB_FILE_NAME	:=lib$(LIB_NAME).a
 LIB_FILE		:=$(BUILD_DIR)/$(LIB_FILE_NAME)
-
-include $(PROJ_DIR)/vars.mk
 
 # Each library will be built entirely independently to its
 # dependencies. It will search for libraries in the install path.

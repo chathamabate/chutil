@@ -6,3 +6,4 @@ build
 *.o
 
 _temp_unity
+install

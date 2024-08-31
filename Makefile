@@ -1,11 +1,9 @@
 
 
-PROJ_DIR:=$(shell git rev-parse --show-toplevel)
-include $(PROJ_DIR)/vars.mk
+include ./vars.mk
 
 # Add Libraries here.
 LIBS:=chutil chjson
-
 
 .PHONY: all clean lib test run_tests uninstall install
 .PHONY: uninstall_unity install_unity
