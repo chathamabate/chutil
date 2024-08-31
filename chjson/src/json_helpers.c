@@ -219,4 +219,49 @@ bool json_equals(json_t *json1, json_t *json2) {
     case CHJSON_NULL:
         return true;
     };
+
+    // Should never make it here.
+    return false;
+}
+
+json_t *json_lookup_key_cstr(json_t *json, const char *key_cstr) {
+    json_t *res;
+
+    string_t *key = new_string_from_literal(key_cstr);
+    res = json_lookup_key(json, key);
+    delete_string(key);
+
+    return res;
+}
+
+json_t *json_lookup_key(json_t *json, string_t *key) {
+    if (!json || json->type != CHJSON_OBJECT) {
+        return NULL;
+    }
+
+    json_t **val_ptr;
+    hash_map_t *hm = json->object_ptr;
+
+    val_ptr = hm_get(hm, &key);
+    if (!val_ptr) {
+        return NULL;
+    }
+    
+    return *val_ptr; 
+}
+
+json_t *json_lookup_index(json_t *json, size_t ind) {
+    if (!json || json->type != CHJSON_LIST) {
+        return NULL;
+    }
+    
+    json_t **cell_ptr;
+    list_t *l = json->list_ptr;
+
+    if (l_len(l) <= ind) {
+        return NULL;
+    }
+
+    cell_ptr = l_get(l, ind);
+    return *cell_ptr;
 }

@@ -2,6 +2,7 @@
 #include "chutil/debug.h"
 #include <string.h>
 
+
 // Concrete function usages:
 static const list_impl_t ARRAY_LIST_IMPL_VAL = {
     .constructor = (list_constructor_ft)new_array_list,

@@ -58,6 +58,14 @@ json_t *_new_json_list_from_eles(int dummy, ...);
 // The new json object will own the given string.
 json_t *new_json_string(string_t *s);
 
+static inline json_t *new_json_string_from_cstr(const char *cstr) {
+    return new_json_string(new_string_from_cstr(cstr));
+}
+
+static inline json_t *new_json_string_from_literal(const char *literal) {
+    return new_json_string(new_string_from_literal(literal));
+}
+
 json_t *new_json_number(double n);
 json_t *new_json_boolean(bool b);
 

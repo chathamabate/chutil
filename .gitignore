@@ -4,3 +4,6 @@ build
 *.log
 *.a
 *.o
+
+_temp_unity
+install

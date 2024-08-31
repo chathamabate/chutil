@@ -3,6 +3,7 @@
 #define CHUTIL_STRING_H
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 typedef struct _shared_string_t {

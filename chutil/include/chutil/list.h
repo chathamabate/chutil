@@ -3,6 +3,7 @@
 #define CHUTIL_LIST_H
 
 #include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 // Abstract List Types. (Really just reinventing C++ here.)

@@ -1,0 +1,29 @@
+
+name: Try Build and Test
+
+# Trigger on push events to any branch
+on:
+  push:
+    branches:
+      - '*' # Matches any branch
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install Unity
+        run: make install_unity
+
+      - name: Build and Install chlibs
+        run: make install
+
+      - name: Build Tests
+        run: make test
+
+      - name: Run Tests
+        run: make run_tests
+
