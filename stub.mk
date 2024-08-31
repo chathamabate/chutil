@@ -66,7 +66,9 @@ TEST_INCLUDE_FLAGS :=$(addprefix -I,$(TEST_INCLUDE_PATHS))
 DEPS_PATHS 	:=$(BUILD_DIR) $(INSTALL_DIR)
 DEPS_FLAGS	:=$(addprefix -L,$(DEPS_PATHS)) $(foreach dep,$(DEPS),-l$(dep))
 
-.PHONY: all lib test uninstall install clean clangd clean_clangd
+.PHONY: all lib test run_tests
+.PHONY: uninstall_headers install_headser uninstall_lib install_lib
+.PHONY: clean clangd clean_clangd
 
 all: lib test
 
@@ -74,16 +76,22 @@ lib: $(LIB_FILE)
 
 test: $(BUILD_TEST_DIR)/test
 
+run_tests: test
+	$(BUILD_TEST_DIR)/test	
+
+$(INSTALL_DIR) $(INSTALL_DIR)/include:
+	mkdir -p $@
+
 uninstall_headers:
 	rm -rf $(INSTALL_DIR)/include/$(LIB_NAME)
 
-install_headers: uninstall_headers
+install_headers: uninstall_headers | $(INSTALL_DIR)/include
 	cp -r $(INCLUDE_DIR)/$(LIB_NAME) $(INSTALL_DIR)/include
 
 uninstall_lib:
 	rm -f $(INSTALL_DIR)/$(LIB_FILE_NAME)
 
-install_lib: uninstall_lib $(LIB_FILE)
+install_lib: uninstall_lib $(LIB_FILE) | $(INSTALL_DIR)
 	cp $(LIB_FILE) $(INSTALL_DIR)
 
 uninstall: uninstall_lib uninstall_headers
