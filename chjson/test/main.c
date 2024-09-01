@@ -1,6 +1,10 @@
 
 #include <stdio.h>
 #include "chjson/json_helpers.h"
+#include "chjson/parser.h"
+#include "chutil/list.h"
+#include "chutil/map.h"
+#include "chutil/stream.h"
 #include "chutil/string.h"
 #include "chjson/json.h"
 #include "json_helper.h"

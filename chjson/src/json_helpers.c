@@ -110,6 +110,7 @@ static stream_state_t json_to_stream_helper(json_t *json, out_stream_t *os,
             OS_PUTC(os, '\"');
             OS_PUTS(os, s_get_cstr(key));
             OS_PUTC(os, '\"');
+            OS_PUTC(os, ':');
 
             if (spaced) {
                 OS_PUTC(os, ' ');

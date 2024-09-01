@@ -10,7 +10,7 @@
 #include "chutil/string.h"
 
 typedef enum _json_type_t {
-    CHJSON_OBJECT,
+    CHJSON_OBJECT, 
     CHJSON_LIST,
     CHJSON_STRING,
     CHJSON_NUMBER,
