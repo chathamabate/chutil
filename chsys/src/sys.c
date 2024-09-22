@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/_pthread/_pthread_mutex_t.h>
 #include <sys/signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -28,13 +29,15 @@ typedef struct _child_node_t {
 } child_node_t;
 
 typedef struct _sys_state_t {
-    pthread_mutex_t lock;
-
     bool quiet;
+
+    // NOTE: this counter will keep track of user mallocs only.
+    // All mallocs within this file are not counted!
     size_t malloc_count;
     child_node_t *child_list;
 } sys_state_t;
 
+static pthread_mutex_t sys_mut;
 static sys_state_t *ss = NULL;
 
 static void *sig_thread(void *arg) {
@@ -55,7 +58,7 @@ static void *sig_thread(void *arg) {
     }
 
     sys_lock(true);
-    log_info(false, "SIGINT received.");
+    log_info(false, "SIGINT received");
     safe_exit(false, 0);
     sys_unlock(true);
 
@@ -63,15 +66,27 @@ static void *sig_thread(void *arg) {
     return NULL;
 }
 
+static void spawn_sig_thread(bool acquire_lock) {
+    pthread_t st;
+    int s = pthread_create(&st, NULL, sig_thread, NULL);
+    if (s) {
+        log_fatal(acquire_lock, "Failed to create signal handling thread. (%d)", s);
+    }
+}
+
 void sys_init(void) {
     int s;
 
     if (ss) {
         // We can call log here since our system is already setup!
-        log_fatal(true, "System attempting to be init'd more than once.");
+        log_fatal(true, "System attempting to be init'd more than once");
     }
 
-    // Let's setup our state in memory.
+    s = pthread_mutex_init(&(sys_mut), NULL);
+    if (s) {
+        ERROR_OUT("Could not init system state mutex\n");
+    }
+
     ss = malloc(sizeof(sys_state_t));
     if (!ss) {
         ERROR_OUT("Could not malloc system state\n");
@@ -80,11 +95,6 @@ void sys_init(void) {
     ss->quiet = 0;
     ss->malloc_count = 0;
     ss->child_list = NULL;
-
-    s = pthread_mutex_init(&(ss->lock), NULL);
-    if (s) {
-        ERROR_OUT("Could not init system state mutex\n");
-    }
 
     // We've initialized our system state!
     // Now we can call log!
@@ -102,22 +112,18 @@ void sys_init(void) {
 
     // Spawn our signal handling thread. 
     // (THIS SHOULD ALWAYS BE THE LAST ACTION OF THIS FUNCITON)
-    pthread_t st;
-    s = pthread_create(&st, NULL, sig_thread, NULL);
-    if (s) {
-        log_fatal(true, "Failed to create signal handling thread. (%d)", s);
-    }
+    spawn_sig_thread(true);
 }
 
 void sys_lock(bool acquire_lock) {
     if (acquire_lock) {
-        pthread_mutex_lock(&(ss->lock));
+        pthread_mutex_lock(&(sys_mut));
     }
 }
 
 void sys_unlock(bool acquire_lock) {
     if (acquire_lock) {
-        pthread_mutex_unlock(&(ss->lock));
+        pthread_mutex_unlock(&(sys_mut));
     }
 }
 
@@ -171,39 +177,45 @@ void sys_reset_malloc_count(bool acquire_lock) {
     sys_unlock(acquire_lock);
 }
 
-// If kill and wait is given, a SIGKILL will be sent to each
-// child, and the child will be waited on.
-/*
-static void free_child_list(bool killAndWait) {
-    child_node_t *iter;
-    child_node_t *next;
-
-    iter = ss->child_list;
+// This should be called after a fork within the child process.
+// We must have the lock when we call this function.
+// We will release the lock before returning.
+//
+// NOTE: I have learned that only the calling thread is duplicated over
+// to the child process. So, we are responsiblle for recreating the 
+// SIGINT handling thread.
+static int prepare_from_child(void) {
+    child_node_t *iter = ss->child_list;
+    child_node_t *temp;
     while (iter) {
-        if (killAndWait) {
-            kill(iter->pid, SIGINT);
-            waitpid(iter->pid, NULL, 0);
-        }
-
-        next = iter->next;
+        temp = iter->next;
         free(iter);
-        iter = next;
+        iter = temp;
     }
 
     ss->child_list = NULL;
+
+    // Finally, release the lock and return!
+    sys_unlock(true);
+
+    // Spawn our signal thread.
+    spawn_sig_thread(true);
+
+    return 0;
 }
 
 pid_t safe_fork(void) {
+    // Acquire the system lock before forking!
+    sys_lock(true);
+
     pid_t pid = fork();
     
     if (pid < 0) {
-        safe_exit(1);
+        log_fatal(false, "Failed to fork");
     }
 
     if (pid == 0) {
-        // Free the child list without killing/waiting.
-        free_child_list(false);
-        return 0;
+        return prepare_from_child();
     }
 
     // parent process.
@@ -215,12 +227,14 @@ pid_t safe_fork(void) {
         kill(pid, SIGINT);
         waitpid(pid, NULL, 0);
 
-        safe_exit(1);
+        log_fatal(false, "Unable to malloc child node");
     }
 
     node->pid = pid;
     node->next = ss->child_list;
     ss->child_list = node;
+
+    sys_unlock(true);
     
     return pid;
 }
@@ -229,7 +243,7 @@ pid_t safe_waitpid(pid_t pid, int *wstatus, int options) {
     pid_t p = waitpid(pid, wstatus, options);
 
     if (p < 0) {
-        safe_exit(1);
+        log_fatal(true, "Failed to waitpid");
     }
 
     // WNOHANG case.
@@ -237,32 +251,64 @@ pid_t safe_waitpid(pid_t pid, int *wstatus, int options) {
         return 0;
     }
 
-    // Actual process reaped!
+    // Process was reaped! let's remove it from our child list.
+
+    sys_lock(true);
+
+
     child_node_t *prev = NULL;
     child_node_t *iter = ss->child_list;
 
-    // If there's a process to wait on, it must appear in
-    // the child list... thus, this loop must exit!
-    while (1) {
-        if (iter->pid == p) {
-            if (prev) {
-                prev->next = iter->next;
-            } else {
-                ss->child_list = iter->next;
-            }
-
-            free(iter);
-            return p;
-        }
-
-        // Advance.
+    while (iter && iter->pid != p) {
         prev = iter;
         iter = prev->next;
     }
+
+    if (!iter) {
+        log_fatal(false, "Reaped child not found in child list");
+    }
+
+    if (prev) {
+        prev->next = iter->next;
+    } else {
+        ss->child_list = iter->next;
+    }
+
+    free(iter);
+
+    sys_unlock(true);
+    return p;
 }
-*/
 
 void safe_exit(bool acquire_lock, int status) {
-    (void)acquire_lock;
+    sys_lock(acquire_lock);
+
+    // NOTE: Log fatal calls this function, so we cannot call log fatal within exit.
+
+    // Check malloc count.
+    if (ss->malloc_count > 0) {
+        log_warn(false, "Process exiting with memory leak. (%zu)", ss->malloc_count);
+    }
+
+    // kill all children. 
+    child_node_t *temp;
+    child_node_t *iter = ss->child_list;
+
+    while (iter) {
+        temp = iter->next;
+        
+        log_info(false, "Killing and reaping process with pid=%d", iter->pid);
+        kill(iter->pid, SIGINT);
+        waitpid(iter->pid, NULL, 0);
+
+        // Finally free our iter.
+        free(iter);
+
+        iter = temp;
+    }
+
+    free(ss); 
+    
+    // NOTE: We exit while holding our lock!
     exit(status);
 }
