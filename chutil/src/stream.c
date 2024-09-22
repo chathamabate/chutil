@@ -1,6 +1,6 @@
 
 #include "chutil/stream.h"
-#include "chutil/debug.h"
+#include "chsys/mem.h"
 #include "chutil/string.h"
 #include <stdio.h>
 

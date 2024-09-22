@@ -1,5 +1,5 @@
 #include "chutil/list.h"
-#include "chutil/debug.h"
+#include "chsys/mem.h"
 #include <string.h>
 
 

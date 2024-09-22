@@ -3,7 +3,7 @@
 include ./vars.mk
 
 # Add Libraries here.
-LIBS:=chutil chjson
+LIBS:=chutil chjson chsys
 
 .PHONY: all clean lib test run_tests uninstall install
 .PHONY: uninstall_unity install_unity

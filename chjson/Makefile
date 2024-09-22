@@ -1,6 +1,6 @@
 
 LIB_NAME	:= chjson
-DEPS		:= chutil
+DEPS		:= chutil chsys
 
 SRCS		:= json.c \
 			   json_helpers.c \
