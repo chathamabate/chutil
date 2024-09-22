@@ -23,7 +23,6 @@ void sys_dec_malloc_count(bool acquire_lock);
 size_t sys_get_malloc_count(bool acquire_lock);
 void sys_reset_malloc_count(bool acquire_lock);
 
-// These below calls are all threadsafe!
 pid_t safe_fork(void);
 pid_t safe_waitpid(pid_t pid, int *wstatus, int options);
 

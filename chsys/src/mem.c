@@ -4,32 +4,33 @@
 #include "chsys/log.h"
 #include "chsys/sys.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
 
-void *safe_malloc(size_t s) {
+void *safe_malloc_p(bool acquire_lock, size_t s) {
     void *mem = malloc(s);
     if (!mem) {
-        log_fatal(true, "Failed to malloc");
+        log_fatal(acquire_lock, "Failed to malloc");
     }
-    sys_inc_malloc_count(true);
+    sys_inc_malloc_count(acquire_lock);
 
     return mem;
 }
 
-void *safe_realloc(void *mem, size_t s) {
+void *safe_realloc_p(bool acquire_lock, void *mem, size_t s) {
     if (!mem) {
-        return safe_malloc(s);
+        return safe_malloc_p(acquire_lock, s);
     }
 
     void *new_mem = realloc(mem, s);
     if (!new_mem) {
-        log_fatal(true, "Failed to realloc");
+        log_fatal(acquire_lock, "Failed to realloc");
     }
 
     return new_mem;
 }
 
-void safe_free(void *mem) {
-    sys_dec_malloc_count(true);
+void safe_free_p(bool acquire_lock, void *mem) {
+    sys_dec_malloc_count(acquire_lock);
     free(mem);
 }
