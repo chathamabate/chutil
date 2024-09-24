@@ -1,10 +1,4 @@
 
-#include <signal.h>
-#include <stdio.h>
-#include "chsys/log.h"
-#include "chsys/mem.h"
-#include "chsys/sys.h"
-#include <stdlib.h>
 #include <unistd.h>
 #include "sys.h"
 

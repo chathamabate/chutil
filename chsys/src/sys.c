@@ -1,18 +1,17 @@
 
 #include "chsys/sys.h"
-#include "chsys/mem.h"
-#include "chsys/log.h"
 
 #include <pthread.h>
 #include <signal.h>
 #include <stdlib.h>
-#include <pthread.h>
-#include <sys/signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <limits.h>
 #include <stdbool.h>
+
+#include <stdint.h>
+
+#include "chsys/log.h"
 
 // mean to only be used during setup.
 #define ERROR_OUT(...) \
@@ -144,7 +143,7 @@ bool sys_is_quiet_p(bool acquire_lock) {
 
 void sys_inc_malloc_count_p(bool acquire_lock) {
     sys_lock_p(acquire_lock);
-    if (ss->malloc_count == SIZE_T_MAX) {
+    if (ss->malloc_count == SIZE_MAX) {
         log_fatal_p(false, "Malloc overflow");
     }
     ss->malloc_count++;

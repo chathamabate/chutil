@@ -1,6 +1,3 @@
-#include <stdio.h>
-
-#include "chutil/list.h"
 #include "unity/unity_internals.h"
 #include "unity/unity.h"
 
@@ -17,11 +14,11 @@
 
 
 void setUp(void) {
-    sys_reset_malloc_count(true);
+    sys_reset_malloc_count();
 }
 
 void tearDown(void) {
-    TEST_ASSERT_EQUAL_size_t(0, sys_get_malloc_count(true));
+    TEST_ASSERT_EQUAL_size_t(0, sys_get_malloc_count());
 }
 
 
@@ -36,5 +33,5 @@ int main(void) {
     string_tests(); 
     stream_tests();
     utf8_tests();
-    safe_exit(true, UNITY_END());
+    safe_exit(UNITY_END());
 }

@@ -2,11 +2,10 @@
 #include "chsys/log.h"
 #include "chsys/sys.h"
 
-#include <stdlib.h>
 #include <pthread.h>
 #include <stdio.h>
+
 #include <stdarg.h>
-#include <sys/_types/_va_list.h>
 #include <unistd.h>
 
 typedef struct _log_level_style_t {
