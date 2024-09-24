@@ -7,7 +7,6 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <sys/_pthread/_pthread_mutex_t.h>
 #include <sys/signal.h>
 #include <sys/wait.h>
 #include <unistd.h>

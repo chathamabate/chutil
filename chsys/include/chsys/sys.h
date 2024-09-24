@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <sys/types.h>
 
 // An error during setup will result in exit.
 // A message will be printed, but not in a pretty way!
