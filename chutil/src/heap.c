@@ -1,6 +1,6 @@
 
 #include "chutil/heap.h"
-#include "chutil/debug.h"
+#include "chsys/mem.h"
 
 #include <stdlib.h>
 #include <string.h>

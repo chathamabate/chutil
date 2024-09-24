@@ -1,8 +1,7 @@
 
 LIB_NAME	:= chutil
-DEPS		:=
-SRCS		:= debug.c \
-			   list.c \
+DEPS		:= chsys
+SRCS		:= list.c \
 			   list_helpers.c \
 			   map.c \
 			   heap.c \

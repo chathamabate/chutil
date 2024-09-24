@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include "chutil/string.h"
-#include "chutil/debug.h"
+#include "chsys/mem.h"
 
 // It's common to what to exit a function when a stream call
 // returns anything other than STREAM SUCCESS.

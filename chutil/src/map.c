@@ -1,6 +1,6 @@
 
 #include "chutil/map.h"
-#include "chutil/debug.h"
+#include "chsys/mem.h"
 #include <string.h>
 
 static inline key_val_pair_t kvh_to_kvp(key_val_header_t *kvh) {

@@ -1,8 +1,9 @@
 
 #include "chutil/string.h"
-#include "chutil/debug.h"
+#include "chsys/mem.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 // Versatile constructor for shared_string.
 // If cstr = NULL, len will be set to 0, and cap to 1.

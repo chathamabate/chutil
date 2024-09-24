@@ -1,6 +1,6 @@
 
 #include "chjson/json.h"
-#include "chutil/debug.h"
+#include "chsys/mem.h"
 #include "chutil/map.h"
 #include "chutil/string.h"
 #include <stdarg.h>

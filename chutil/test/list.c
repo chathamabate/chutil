@@ -1,7 +1,7 @@
 
 #include "chutil/list.h"
 #include "list.h"
-#include "chutil/debug.h"
+#include "chsys/mem.h"
 
 #include "unity/unity_internals.h"
 #include "unity/unity.h"
