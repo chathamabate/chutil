@@ -9,20 +9,20 @@
 
 static void test_init_and_exit(void) {
     sys_init(); 
-    safe_exit(true, 0);
+    safe_exit_p(true, 0);
 }
 
 static void test_mem_leak(void) {
     sys_init(); 
     safe_malloc(100);
-    safe_exit(true, 0);
+    safe_exit_p(true, 0);
 }
 
 static void test_no_mem_leak(void) {
     sys_init();
     void *mem = safe_malloc(100);
     safe_free(mem);
-    safe_exit(true, 0);
+    safe_exit_p(true, 0);
 }
 
 static void test_sigint_catch(void) {
@@ -30,7 +30,7 @@ static void test_sigint_catch(void) {
 
     while (true) {
         sleep(1);
-        log_info(true, "Send a SIGINT to kill me.");
+        log_info_p(true, "Send a SIGINT to kill me.");
     }
 }
 
@@ -41,12 +41,12 @@ static void test_simple_fork(void) {
     if (p == 0) {
         while (true) {
             sleep(1);
-            log_info(true, "Hello from child process.");
+            log_info_p(true, "Hello from child process.");
         }
     }
 
     sleep(3);
-    safe_exit(true, 0);
+    safe_exit_p(true, 0);
 }
 
 static void test_multi_fork(void) {
@@ -57,13 +57,13 @@ static void test_multi_fork(void) {
         if (p == 0) {
             while (true) {
                 sleep(1);
-                log_info(true, "Hello from child process %zu.", i);
+                log_info_p(true, "Hello from child process %zu.", i);
             }
         }
     }
 
     sleep(3);
-    safe_exit(true, 0);
+    safe_exit_p(true, 0);
 }
 
 static void test_nested_forks(void) {
@@ -74,12 +74,12 @@ static void test_nested_forks(void) {
         safe_fork();
         while (true) {
             sleep(1);
-            log_info(true, "Hello");
+            log_info_p(true, "Hello");
         }
     }
 
     sleep(3);
-    safe_exit(true, 0);
+    safe_exit_p(true, 0);
 }
 
 static void test_waitpid(void) {
@@ -118,7 +118,7 @@ static void test_waitpid(void) {
 
     // Expect 4 kills on exit.
 
-    safe_exit(true, 0);
+    safe_exit_p(true, 0);
 }
 
 

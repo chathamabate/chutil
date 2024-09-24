@@ -54,23 +54,23 @@ static void *sig_thread(void *arg) {
     // Wait for just one SIGINT.
     s = sigwait(&set, &sig);     
     if (s) {
-        log_fatal(true, "Error from sigwait. (%d)", s);
+        log_fatal_p(true, "Error from sigwait. (%d)", s);
     }
 
-    sys_lock(true);
-    log_info(false, "SIGINT received");
-    safe_exit(false, 0);
-    sys_unlock(true);
+    sys_lock_p(true);
+    log_info_p(false, "SIGINT received");
+    safe_exit_p(false, 0);
+    sys_unlock_p(true);
 
     // Will never make it here.
     return NULL;
 }
 
-static void spawn_sig_thread(bool acquire_lock) {
+static void spawn_sig_thread_p(bool acquire_lock) {
     pthread_t st;
     int s = pthread_create(&st, NULL, sig_thread, NULL);
     if (s) {
-        log_fatal(acquire_lock, "Failed to create signal handling thread. (%d)", s);
+        log_fatal_p(acquire_lock, "Failed to create signal handling thread. (%d)", s);
     }
 }
 
@@ -79,7 +79,7 @@ void sys_init(void) {
 
     if (ss) {
         // We can call log here since our system is already setup!
-        log_fatal(true, "System attempting to be init'd more than once");
+        log_fatal_p(true, "System attempting to be init'd more than once");
     }
 
     s = pthread_mutex_init(&(sys_mut), NULL);
@@ -107,74 +107,74 @@ void sys_init(void) {
     sigaddset(&set, SIGINT);
     s = pthread_sigmask(SIG_BLOCK, &set, NULL);
     if (s) {
-        log_fatal(true, "Failed to block SIGINT. (%d)", s);
+        log_fatal_p(true, "Failed to block SIGINT. (%d)", s);
     }
 
     // Spawn our signal handling thread. 
     // (THIS SHOULD ALWAYS BE THE LAST ACTION OF THIS FUNCITON)
-    spawn_sig_thread(true);
+    spawn_sig_thread_p(true);
 }
 
-void sys_lock(bool acquire_lock) {
+void sys_lock_p(bool acquire_lock) {
     if (acquire_lock) {
         pthread_mutex_lock(&(sys_mut));
     }
 }
 
-void sys_unlock(bool acquire_lock) {
+void sys_unlock_p(bool acquire_lock) {
     if (acquire_lock) {
         pthread_mutex_unlock(&(sys_mut));
     }
 }
 
-void sys_set_quiet(bool acquire_lock, bool q) {
-    sys_lock(acquire_lock);
+void sys_set_quiet_p(bool acquire_lock, bool q) {
+    sys_lock_p(acquire_lock);
     ss->quiet = q;
-    sys_unlock(acquire_lock);
+    sys_unlock_p(acquire_lock);
 }
 
-bool sys_is_quiet(bool acquire_lock) {
+bool sys_is_quiet_p(bool acquire_lock) {
     bool res;
 
-    sys_lock(acquire_lock);
+    sys_lock_p(acquire_lock);
     res = ss->quiet;
-    sys_unlock(acquire_lock);
+    sys_unlock_p(acquire_lock);
 
     return res;
 }
 
-void sys_inc_malloc_count(bool acquire_lock) {
-    sys_lock(acquire_lock);
+void sys_inc_malloc_count_p(bool acquire_lock) {
+    sys_lock_p(acquire_lock);
     if (ss->malloc_count == SIZE_T_MAX) {
-        log_fatal(false, "Malloc overflow");
+        log_fatal_p(false, "Malloc overflow");
     }
     ss->malloc_count++;
-    sys_unlock(acquire_lock);
+    sys_unlock_p(acquire_lock);
 }
 
-void sys_dec_malloc_count(bool acquire_lock) {
-    sys_lock(acquire_lock);
+void sys_dec_malloc_count_p(bool acquire_lock) {
+    sys_lock_p(acquire_lock);
     if (ss->malloc_count == 0) {
-        log_fatal(false, "Malloc underflow");
+        log_fatal_p(false, "Malloc underflow");
     }
     ss->malloc_count--;
-    sys_unlock(acquire_lock);
+    sys_unlock_p(acquire_lock);
 }
 
-size_t sys_get_malloc_count(bool acquire_lock) {
+size_t sys_get_malloc_count_p(bool acquire_lock) {
     size_t mc;
 
-    sys_lock(acquire_lock);
+    sys_lock_p(acquire_lock);
     mc = ss->malloc_count;
-    sys_unlock(acquire_lock);
+    sys_unlock_p(acquire_lock);
 
     return mc;
 }
 
-void sys_reset_malloc_count(bool acquire_lock) {
-    sys_lock(acquire_lock);
+void sys_reset_malloc_count_p(bool acquire_lock) {
+    sys_lock_p(acquire_lock);
     ss->malloc_count = 0;
-    sys_unlock(acquire_lock);
+    sys_unlock_p(acquire_lock);
 }
 
 // This should be called after a fork within the child process.
@@ -195,23 +195,22 @@ static int prepare_from_child(void) {
 
     ss->child_list = NULL;
 
-    // Finally, release the lock and return!
-    sys_unlock(true);
+    sys_unlock_p(true);
 
     // Spawn our signal thread.
-    spawn_sig_thread(true);
+    spawn_sig_thread_p(true);
 
     return 0;
 }
 
 pid_t safe_fork(void) {
     // Acquire the system lock before forking!
-    sys_lock(true);
+    sys_lock_p(true);
 
     pid_t pid = fork();
     
     if (pid < 0) {
-        log_fatal(false, "Failed to fork");
+        log_fatal_p(false, "Failed to fork");
     }
 
     if (pid == 0) {
@@ -227,14 +226,14 @@ pid_t safe_fork(void) {
         kill(pid, SIGINT);
         waitpid(pid, NULL, 0);
 
-        log_fatal(false, "Unable to malloc child node");
+        log_fatal_p(false, "Unable to malloc child node");
     }
 
     node->pid = pid;
     node->next = ss->child_list;
     ss->child_list = node;
 
-    sys_unlock(true);
+    sys_unlock_p(true);
     
     return pid;
 }
@@ -243,7 +242,7 @@ pid_t safe_waitpid(pid_t pid, int *wstatus, int options) {
     pid_t p = waitpid(pid, wstatus, options);
 
     if (p < 0) {
-        log_fatal(true, "Failed to waitpid");
+        log_fatal_p(true, "Failed to waitpid");
     }
 
     // WNOHANG case.
@@ -253,7 +252,7 @@ pid_t safe_waitpid(pid_t pid, int *wstatus, int options) {
 
     // Process was reaped! let's remove it from our child list.
 
-    sys_lock(true);
+    sys_lock_p(true);
 
 
     child_node_t *prev = NULL;
@@ -265,7 +264,7 @@ pid_t safe_waitpid(pid_t pid, int *wstatus, int options) {
     }
 
     if (!iter) {
-        log_fatal(false, "Reaped child not found in child list");
+        log_fatal_p(false, "Reaped child not found in child list");
     }
 
     if (prev) {
@@ -276,18 +275,18 @@ pid_t safe_waitpid(pid_t pid, int *wstatus, int options) {
 
     free(iter);
 
-    sys_unlock(true);
+    sys_unlock_p(true);
     return p;
 }
 
-void safe_exit(bool acquire_lock, int status) {
-    sys_lock(acquire_lock);
+void safe_exit_p(bool acquire_lock, int status) {
+    sys_lock_p(acquire_lock);
 
     // NOTE: Log fatal calls this function, so we cannot call log fatal within exit.
 
     // Check malloc count.
     if (ss->malloc_count > 0) {
-        log_warn(false, "Process exiting with memory leak. (%zu)", ss->malloc_count);
+        log_warn_p(false, "Process exiting with memory leak. (%zu)", ss->malloc_count);
     }
 
     // kill all children. 
@@ -297,7 +296,7 @@ void safe_exit(bool acquire_lock, int status) {
     while (iter) {
         temp = iter->next;
         
-        log_info(false, "Killing and reaping process with pid=%d", iter->pid);
+        log_info_p(false, "Killing and reaping process with pid=%d", iter->pid);
         kill(iter->pid, SIGINT);
         waitpid(iter->pid, NULL, 0);
 

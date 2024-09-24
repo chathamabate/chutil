@@ -55,10 +55,14 @@ typedef enum _sys_log_level_t {
 
 // If aquire lock is true, this call will aquire the system lock before printing.
 // Otherwise, it won't.
-void log_any(bool aquire_lock, sys_log_level_t level, const char *fmt,...);
+void log_any_p(bool aquire_lock, sys_log_level_t level, const char *fmt,...);
 
-#define log_info(al,...)   log_any(al,SYS_INFO,__VA_ARGS__)
-#define log_warn(al,...)   log_any(al,SYS_WARN,__VA_ARGS__)
-#define log_fatal(al,...)  log_any(al,SYS_FATAL,__VA_ARGS__)
+#define log_info_p(al,...)   log_any_p(al,SYS_INFO,__VA_ARGS__)
+#define log_warn_p(al,...)   log_any_p(al,SYS_WARN,__VA_ARGS__)
+#define log_fatal_p(al,...)  log_any_p(al,SYS_FATAL,__VA_ARGS__)
+
+#define log_info(...)   log_any_p(true,SYS_INFO,__VA_ARGS__)
+#define log_warn(...)   log_any_p(true,SYS_WARN,__VA_ARGS__)
+#define log_fatal(...)  log_any_p(true,SYS_FATAL,__VA_ARGS__)
 
 #endif

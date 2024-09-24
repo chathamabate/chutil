@@ -51,18 +51,18 @@ static void _log_any(sys_log_level_t level, const char *fmt, va_list args) {
     printf(ANSI_RESET "\n");
 }
 
-void log_any(bool acquire_lock, sys_log_level_t level, const char *fmt,...) {
-    sys_lock(acquire_lock);
-    if (!sys_is_quiet(false)) {
+void log_any_p(bool acquire_lock, sys_log_level_t level, const char *fmt,...) {
+    sys_lock_p(acquire_lock);
+    if (!sys_is_quiet_p(false)) {
         va_list args;
         va_start(args, fmt);
         _log_any(level, fmt, args); 
         va_end(args);
     }
     if (level == SYS_FATAL) {
-        safe_exit(false, 1);
+        safe_exit_p(false, 1);
     }
-    sys_unlock(acquire_lock);
+    sys_unlock_p(acquire_lock);
 }
 
 
